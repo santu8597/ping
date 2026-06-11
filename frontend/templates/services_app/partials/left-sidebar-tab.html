@@ -73,14 +73,9 @@
                 </div>
 
                 <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'services_app:dashboard' %}">Analytics</a>
-                    </li><!--end nav-item-->
                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'services_app:public_measurement' %}">Public Measurements</a>
                     </li><!--end nav-item-->
-
-                   
                 </ul><!--end nav-->
             </div><!-- end Dashboards -->
 
@@ -169,7 +164,7 @@
                                 <ul class="nav flex-column">
                                     <li class="nav-item">
                                         <a class="nav-link" style="color: green"
-                                            href="{% url 'services_app:ping_command_page' %}">Ping</a>
+                                            href="{% url 'services_app:dashboard' %}">Ping</a>
                                     </li><!--end nav-item-->
                                 </ul><!--end nav-->
                             </div><!--end sidebarCharts-->
@@ -183,7 +178,7 @@
                                 <ul class="nav flex-column">
                                     <li class="nav-item">
                                         <a class="nav-link"
-                                            href="{% url 'services_app:ping_command_page' %}?tab=report-1">Ping</a>
+                                            href="{% url 'services_app:dashboard' %}?tab=report-1">Ping</a>
                                     </li><!--end nav-item-->
 
                                 </ul><!--end nav-->

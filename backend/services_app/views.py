@@ -45,71 +45,6 @@ api_prefix_viz = CONFIG.API_URL_VIZ
 api_prefix_rd3 = CONFIG.API_URL_RD3
 key_api = CONFIG.APIKEY
 
-@token_required
-def dashboard(request):
-    try:
-        token = request.token
-
-        profile_data = get_profile_details(token)
-        profile_detail = {
-            "first_name": profile_data.get("data").get("first_name"),
-            "last_name": profile_data.get("data").get("last_name"),
-            "designation": profile_data.get("data").get("designation", ""),
-            "is_student": profile_data.get("data").get("is_student"),
-            "is_faculty": profile_data.get("data").get("is_faculty"),
-            "profile_image": profile_data.get("data").get("profile_image", ""),
-            "userid": profile_data.get("data").get("id", "")
-        }
-        request.session["profile_detail"] = profile_detail
-
-        points_data = get_point_details(token)
-        # print("get data..................", profile_detail)
-        # print("get point..................", points_data)
-        try:
-            response_ip = send_ip_data(request) or {}
-        except Exception as e:
-            print("No IP", e)
-            response_ip = {}
-
-        ip_address = response_ip.get('data', {}).get('ip', "0.0.0.0")
-        request.session["ip_address"] = ip_address
-
-        # discussion feature disabled: do not call external discussion APIs
-        response_discussion_data = {"categories": []}
-        anchor_queries = AnchorQueries(token)
-        online_anchors = anchor_queries.get_online_anchors()
-        subscription_data = SubsciptionServices(token)
-        response_subscription_data = subscription_data.get_subscription_data()
-        # Absolute path to CSV
-        csv_path = os.path.join(settings.BASE_DIR, 'static', 'services_app/external_files',
-                                'top_200_in_domains_with_ips.csv')
-
-        if pd:
-            try:
-                df = pd.read_csv(csv_path)
-                data = df.to_dict(orient='records')  # [{'col1': val1, 'col2': val2}, ...]
-                headers = list(df.columns)
-            except Exception as e:
-                # Debugging output if something goes wrong
-                print(f"Error reading CSV: {e}")
-                data = []
-                headers = []
-        else:
-            data = []
-            headers = []
-
-    except:
-        messages.error(request, "Invalid Password or Username!")
-        return redirect('services_app:index')
-    return render(request, 'services_app/index.html',
-                  {"user_data": profile_data["data"], "user_point": points_data["data"],
-                   "anchor_list": online_anchors.get('anchor', []),
-                   # discussion_data removed
-                   "subscription_data": response_subscription_data["plans"][0],
-                   'csv_data': data,
-                   'headers': headers, 'server_data': response_ip.get('data', ''), "api_prefix_viz": api_prefix_viz})
-
-
 def index(request):
     return render(request, 'services_app/auth-login.html')
 
@@ -585,6 +520,32 @@ def user_anchor_update_location_removed(request):
 @token_required
 def ping_command_page(request):
     token = request.token
+
+    if "profile_detail" not in request.session:
+        try:
+            profile_data = get_profile_details(token)
+            profile_detail = {
+                "first_name": profile_data.get("data").get("first_name"),
+                "last_name": profile_data.get("data").get("last_name"),
+                "designation": profile_data.get("data").get("designation", ""),
+                "is_student": profile_data.get("data").get("is_student"),
+                "is_faculty": profile_data.get("data").get("is_faculty"),
+                "profile_image": profile_data.get("data").get("profile_image", ""),
+                "userid": profile_data.get("data").get("id", "")
+            }
+            request.session["profile_detail"] = profile_detail
+        except Exception as e:
+            print("Error getting profile details:", e)
+
+    if "ip_address" not in request.session:
+        try:
+            response_ip = send_ip_data(request) or {}
+            ip_address = response_ip.get('data', {}).get('ip', "0.0.0.0")
+            request.session["ip_address"] = ip_address
+        except Exception as e:
+            print("No IP", e)
+            request.session["ip_address"] = "0.0.0.0"
+
     domain_service = DomainServices(token)
     domain_data = domain_service.get_domain_data()
     anchor_queries = AnchorQueries(token)
@@ -599,6 +560,11 @@ def ping_command_page(request):
                                                               "user_data": user_data,
                                                               'ip': ip, "api_prefix_viz": api_prefix_viz,
                                                               "token": token})
+
+
+@token_required
+def ping_command_redirect(request):
+    return redirect('services_app:dashboard')
 
 
 @token_required

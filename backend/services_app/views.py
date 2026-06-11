@@ -223,7 +223,7 @@ def profile(request):
     ip = request.session.get('ip_address')
     response_subscription_data = subscription_data.get_subscription_data()
     point_utilization_data = subscription_data.get_point_utilization_data()
-    point_utilization = point_utilization_data["utilization"]
+    point_utilization = point_utilization_data.get("utilization", point_utilization_data.get("points", []))
     return render(request, 'services_app/profile.html',
                   {"user_data": profile_data["data"], "user_point": points_data["data"],
                    "subscription_data": response_subscription_data["plans"][0], "point_utilization": point_utilization,

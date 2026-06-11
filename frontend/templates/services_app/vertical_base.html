@@ -24,9 +24,8 @@
     {% block extra_css %}   {% endblock %} {% include "services_app/partials/head-css.html" %}
   </head>
 
-  <body id="body" class="enlarge-menu" {% block body_extra %} {% endblock %}>
-    {% include "services_app/partials/left-sidebar-tab.html" %} 
-    {% include "services_app/partials/topbar.html" %}
+  <body id="body" data-layout="horizontal" {% block body_extra %} {% endblock %}>
+    {% include "services_app/partials/horizontal-nav.html" %} 
  {% include 'services_app/loader.html' %}
     <div class="page-wrapper">
       <div class="page-content-tab">

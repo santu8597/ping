@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Reply Notification - AIORI</title>
+    <style>
+      /* Responsive Design */
+      @media screen and (max-width: 600px) {
+        .content {
+          width: 100% !important;
+          display: block !important;
+          padding: 10px !important;
+        }
+      
+        .header,
+        .body,
+        .footer {
+          padding: 20px !important;
+        }
+      
+        .cta-button {
+          display: block !important;
+          width: 100% !important;
+          box-sizing: border-box;
+        }
+      }
+      
+      /* General Styles */
+      body {
+        font-family: 'Poppins', Arial, sans-serif;
+        background-color: #f4f6f8;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .content {
+        border-collapse: collapse;
+        border: 1px solid #e0e0e0;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+      
+      .header {
+        background-color: #345c72;
+        padding: 30px;
+        text-align: center;
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      
+      .body {
+        padding: 30px;
+        text-align: left;
+        font-size: 16px;
+        line-height: 1.6;
+        color: #333333;
+      }
+      
+      .body blockquote {
+        border-left: 4px solid #345c72;
+        padding-left: 12px;
+        color: #555555;
+        margin: 15px 0;
+        font-style: italic;
+        background-color: #f0f4f7;
+        border-radius: 4px;
+      }
+      
+      .cta-button {
+        background-color: #345c72;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 16px;
+        padding: 12px 24px;
+        border-radius: 6px;
+        display: inline-block;
+      }
+      
+      .cta-button:hover {
+        background-color: #2b4860;
+      }
+      
+      .footer {
+        background-color: #2a2a2a;
+        padding: 20px;
+        text-align: center;
+        color: #ffffff;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td align="center" style="padding: 20px;">
+          <table class="content" width="600" border="0" cellspacing="0" cellpadding="0">
+            <!-- Header -->
+            <tr>
+              <td class="header">AIORI - New Reply Notification</td>
+            </tr>
+            <!-- Body -->
+            <tr>
+              <td class="body">
+                Hi <strong>{{ comment_owner_name }}</strong>,<br /><br />
+                You have a new reply notification.<br /><br />
+                <strong>{{ reply_user_name }}</strong> replied:<blockquote>"{{ reply }}"</blockquote>
+                <br />
+                This notification type is informational; the discussion forum is not available in this deployment.
+              </td>
+            </tr>
+
+            <!-- Call to Action Button -->
+           <!-- <tr>
+              <td style="padding: 0 30px 30px 30px; text-align: center;">
+                <a href="{{ discussion_link }}" target="_blank" class="cta-button">View Reply</a>
+              </td>
+            </tr>-->
+
+            <!-- Footer -->
+            <!-- TODO: Add dynamic year later -->
+            <tr>
+              <td class="footer">&copy; 2026 AIORI | All rights reserved.</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

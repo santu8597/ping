@@ -1,0 +1,468 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+{% load timestamp %}
+{% block title %}Reports{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'libs/animate.css/animate.min.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static '/libs/simple-datatables/style.css' %}" rel="stylesheet" type="text/css" />
+<style>
+    .export-btn {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        border: none;
+        color: white;
+        padding: 8px 11px;
+        font-size: 10px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .export-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    }
+
+</style>
+{% endblock %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Manage</a></li>
+                        <li class="breadcrumb-item active">User Management</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">User Management</h4>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col d-flex flex-direction-rows justify-content-between flex-row">
+                            <h4 class="card-title">User List</h4>
+                            <button id="export-user-info-btn" class="export-btn">⬇ Export User Report</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="border-top-0">No</th>
+                                    <th class="border-top-0">Name</th>
+                                    <th class="border-top-0">Email-ID</th>
+                                    <th class="border-top-0">Is Faculty</th>
+                                    <th class="border-top-0">Is Student</th>
+                                    <th class="border-top-0">Designation</th>
+                                    <th class="border-top-0">Is Blocked</th>
+                                    <th class="border-top-0">Created Date</th>
+                                    <th class="border-top-0">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                               {% for row in user_list %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ row.first_name }} {{ row.last_name }}</td>
+                                    <td>{{ row.email }}</td>
+                                    <td>{{ row.is_faculty }}</td>
+                                    <td>{{ row.is_student }}</td>
+                                    <td>{{ row.designation }}</td>
+                                    <td>{{ row.is_blocked }}</td>
+                                    <td>{{ row.created_date|timestamp }}</td>
+                                    <td>
+                                        <a href="javascript:void(0);" class="profile-view-btn" data-id="{{ row.id }}"><i class="las la-user-circle text-secondary font-18"></i></a>
+                                        <a href="javascript:void(0);" class="profile-login-btn" data-id="{{ row.id }}"><i class="las la-eye text-secondary font-18"></i></a>
+                                        <a href="javascript:void(0);" class="delete-btn" data-id="{{ row.id }}"><i class="las la-trash-alt text-secondary font-18"></i></a>
+                                        <a href="javascript:void(0);" class="block-btn" data-id="{{ row.id }}"><i class="las la-lock text-secondary font-18"></i></a>
+                                        <a href="javascript:void(0);" class="session-btn" data-id="{{ row.id }}"><i class="las la-address-book text-secondary font-18"></i></a>
+                                        <a href="javascript:void(0);" class="user-domain-btn" data-id="{{ row.id }}"><i class="las la-file text-secondary font-18"></i></a>
+                                        <a href="javascript:void(0);" class="user-zones-btn" data-id="{{ row.id }}"><i class="las la-atlas text-secondary font-18"></i></a>
+                                    </td>
+                                </tr>
+                               {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="csrf" hidden>{% csrf_token %}</div>
+
+<div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6 class="modal-title m-0 text-white" id="sessionModalLabel">Session</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+            <div class="modal-body p-3" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>Lat</th>
+                            <th>Long</th>
+                            <th>IP Address</th>
+                            <th>Location</th>
+                            <th>Last Login</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-de-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Domain Details Modal -->
+<div class="modal fade" id="domainDetailsModal" tabindex="-1" role="dialog" aria-labelledby="domainDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document" style="max-height: 80vh; overflow-y: auto;">
+    <div class="modal-content">
+      <div class="modal-header bg-success">
+        <h6 class="modal-title m-0 text-white" id="domainDetailsModalLabel">Domain Details</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3" style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-striped mb-0">
+          <thead>
+            <tr>
+              <th>Sl no</th>
+              <th>User Domain</th>
+              <th>IP Address</th>
+              <th>Created Date</th>
+            </tr>
+          </thead>
+          <tbody id="domainDetailsTableBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-de-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Zone Details Modal -->
+<div class="modal fade" id="zoneDetailsModal" tabindex="-1" role="dialog" aria-labelledby="zoneDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document" style="max-height: 80vh; overflow-y: auto;">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6 class="modal-title m-0 text-white" id="zoneDetailsModalLabel">Zone Details</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3" style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-striped mb-0">
+          <thead>
+            <tr>
+              <th>Sl No.</th>
+              <th>Zone</th>
+              <th>Location</th>
+              <th>Created On</th>
+            </tr>
+          </thead>
+          <tbody id="zoneDetailsTableBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-de-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_javascript %}
+ <script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static '/libs/simple-datatables/umd/simple-datatables.js' %}"></script>
+<script src="{% static '/js/pages/datatable.init.js' %}"></script>
+<script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+
+
+<script id="deleteUserScript">
+// Function to abstract Bootstrap modal showing (good practice for Bootstrap 5)
+function showBootstrapModal(modalId) {
+    const modalElement = document.getElementById(modalId);
+    if (modalElement) {
+        const modalInstance = new bootstrap.Modal(modalElement);
+        modalInstance.show();
+    } else {
+        console.error(`Modal element with ID "${modalId}" not found.`);
+    }
+}
+
+$(document).on("click", ".delete-btn", function () {
+    const userId = $(this).data("id");
+
+    Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to delete this user?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/user/delete/`,
+                method: "PUT",
+                headers: {
+                    'X-CSRFToken': document.getElementById('csrf').querySelector('input').value
+                },
+                data: { user_id: userId },
+                success: function (response) {
+                    Swal.fire("Deleted!", "User has been deleted.", "success").then(() => location.reload());
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire("Error", "Failed to delete user.", "error");
+                }
+            });
+        }
+    });
+});
+</script>
+
+<script id="blockUserScript">
+$(document).on("click", ".block-btn", function () {
+    const userId = $(this).data("id");
+    // Check the 'is_blocked' column content to determine current block status
+    const isCurrentlyBlocked = $(this).closest('tr').find('td:nth-child(8)').text().trim().toLowerCase() === 'true'; // Corrected column index for is_blocked
+    const actionText = isCurrentlyBlocked ? "unblock" : "block";
+    const isBlockedValue = !isCurrentlyBlocked; // Toggle the block status
+
+    Swal.fire({
+        title: `Are you sure?`,
+        text: `Do you want to ${actionText} this user?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: `Yes, ${actionText} it!`,
+        cancelButtonText: "Cancel"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/user/block/`,
+                method: "PUT",
+                headers: {
+                    'X-CSRFToken': document.getElementById('csrf').querySelector('input').value
+                },
+                data: { user_id: userId, is_blocked: isBlockedValue },
+                success: function (response) {
+                    Swal.fire("Success!", `User has been ${actionText}ed.`, "success").then(() => location.reload());
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire("Error", `Failed to ${actionText} user.`, "error");
+                }
+            });
+        }
+    });
+});
+</script>
+
+<script id="sessionUserScript">
+$(document).on("click", ".session-btn", function () {
+    // Clear existing rows
+    $("#sessionTableBody").empty();
+
+    // Placeholder: Add a few sample rows (or leave empty)
+    for (let i = 0; i < 5; i++) {
+        $("#sessionTableBody").append(`
+            <tr>
+                <td>12.34${i}</td>
+                <td>56.78${i}</td>
+                <td>192.168.1.${i}</td>
+                <td>Location ${i}</td>
+                <td>${new Date().toLocaleString()}</td>
+            </tr>
+        `);
+    }
+
+    // Use the function to show the modal
+    showBootstrapModal('sessionModal');
+});
+</script>
+
+<script id="profileViewScript">
+$(document).on("click", ".profile-view-btn", function () {
+    const userId = $(this).data("id");
+    console.log("Profile View button clicked for user ID:", userId);
+     $.ajax({
+    url: `/user-report/`,
+    method: "POST",
+    headers: {
+        'X-CSRFToken': document.getElementById('csrf').querySelector('input').value
+    },
+    data: {
+        "user_id": userId,
+        "report_type": "user_profile_report"
+    },
+    success: function (response) {
+        if (response.status === 1) {
+            const profile = response.profile?.[0] || {};
+            const orgLabel = profile.company ? "Company" : profile.institution_name ? "Institute" : "Organization"; // not found instition_name or company then organization will come
+            const orgValue = profile.company || profile.institution_name || "N/A";
+
+            const contentHtml = `
+                <p>Name: ${profile.first_name || ''} ${profile.last_name || ''}</p>
+                <p>Mobile: ${profile.phone_no || ''}</p>
+                <p>Email: ${profile.email || ''}</p>
+                <p>Role: ${profile.is_student ? "Student" : profile.is_faculty ? "Faculty" : "User"}</p>
+                <p>${orgLabel}: ${orgValue}</p>
+                <p>Designation: ${profile.designation || ''}</p>
+                <p>Address: ${profile.address || ''}</p>
+                <p>Pin Code: ${profile.pin_code || ''}</p>
+            `;
+
+            Swal.fire({
+                title: "User Profile",
+                html: contentHtml,
+                icon: "info",
+                width: 600,
+                confirmButtonText: "Close"
+            });
+
+        } else {
+            showError(response.message || "Failed to fetch profile!");
+        }
+    },
+    error: function () {
+        showError("Something went wrong! Please try again.");
+    }
+});
+
+
+});
+</script>
+
+<script id="profileLoginScript">
+$(document).on("click", ".profile-login-btn", function () {
+    const userId = $(this).data("id");
+    console.log("Profile Login button clicked for user ID:", userId);
+    // Placeholder for profile login logic
+    Swal.fire("Profile Login", `Showing login details for user ID: ${userId}`, "info");
+});
+</script>
+
+<script id="domainUserScript">
+$(document).on("click", ".user-domain-btn", function () {
+    const userId = $(this).data("id");
+    console.log("User Domain button clicked for user ID:", userId);
+
+            $.ajax({
+                url: `/domain/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: {"user_id":userId,"action_type": "admin_report_domain"},
+
+                success: function (response) {
+                         // Clear existing rows
+                            $("#domainDetailsTableBody").empty();
+                        if (response.status = 1 && response.domain.length > 0) {
+
+                response.domain.forEach((q, idx) => {
+                    let row = `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${q.domain_name}</td>
+                            <td>${q.domain_ip}</td>
+                            <td>${new Date(q.created_date).toLocaleString()}</td>
+                        </tr>
+                    `;
+                    $("#domainDetailsTableBody").append(row);
+                });
+            }
+                    else {
+                        showError(response.error || "Failed to show domains!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+    // Show the modal
+    showBootstrapModal('domainDetailsModal');
+});
+
+ function showError(message) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message,
+            confirmButtonColor: "#d33"
+        });
+    }
+</script>
+
+<script id="zoneUserScript">
+$(document).on("click", ".user-zones-btn", function () {
+    const userId = $(this).data("id");
+    console.log("User Zones button clicked for user ID:", userId);
+
+
+
+     $.ajax({
+                url: `/user-report/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: {"user_id":userId,"report_type": "user_zone_report"},
+
+                success: function (response) {
+                         // Clear existing rows
+                           $("#zoneDetailsTableBody").empty();
+                        if (response.status = 1 && response.zone.length > 0) {
+
+                response.zone.forEach((q, idx) => {
+                    let row = `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${q.user_zone_name}</td>
+                            <td>${q.user_anchor_locations}</td>
+                            <td>${new Date(q.created_date).toLocaleString()}</td>
+                        </tr>
+                    `;
+                    $("#zoneDetailsTableBody").append(row);
+                });
+            }
+                    else {
+                        showError(response.error || "Failed to show zones!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+
+
+
+    // Show the modal
+    showBootstrapModal('zoneDetailsModal');
+});
+</script>
+
+<script>
+    $("#export-user-info-btn").click(function () {
+        window.location.href = "/export-user-report/";
+    });
+</script>
+{% endblock %}

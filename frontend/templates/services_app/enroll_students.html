@@ -1,0 +1,791 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+{% load timestamp %}
+{% block title %}Enroll Students{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block page_content %}
+
+
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Menu</a>
+                        </li><!--end nav-item-->
+                        <li class="breadcrumb-item active">Enroll Students</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Enroll Students</h4>
+            </div><!--end page-title-box-->
+        </div><!--end col-->
+    </div>
+
+    <!-- end page title end breadcrumb -->
+     <div class="row">
+        <div class="col-lg-6">
+            <h5 class="m-0 font-14">
+                Here the list of all students associated with {{ student_list.faculty }}.
+              <span class="badge badge-soft-pink">{{ student_list.students|length }}</span>
+            </h5>
+        </div><!--end col-->
+
+        <div class="col-lg-6 text-end">
+            <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal"
+                                            data-bs-target="#studentModal">Enroll</button>
+
+        </div><!--end col-->
+    </div><!--end row-->
+
+    <div class="row">
+        {% for row in student_list.students %}
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="media mb-3">
+
+                        <div class="media-body align-self-center">
+                            <h4 class="mt-0 mb-0 font-16">{{ row.first_name }} {{ row.last_name }}
+
+                            </h4>
+                            <p class="text-muted mb-0 font-12">{{ row.institution_name }}</p>
+                        </div><!--end media body-->
+                    </div> <!--end media-->
+                    <ul class="list-unstyled mb-2">
+                        <li class="mt-2"><i data-feather="user" class="align-self-center icon-xs icon-dual me-1"></i>
+                            <b> Student ID </b> : {{ row.student_id }}</li>
+                        <li class="mt-2"><i data-feather="calendar" class="align-self-center icon-xs icon-dual me-1"></i>
+                            <b>Date Joined</b> : {{ row.created_at|timestamp }}</li>
+                        <li class="mt-2"><i data-feather="phone" class="align-self-center icon-xs icon-dual me-1"></i>
+                            <b> phone </b> : +91 {{ row.phone_no }}</li>
+                        <li class="mt-2"><i data-feather="mail" class="align-self-center icon-xs icon-dual me-1"></i>
+                            <b> Email </b> : {{ row.email }}</li>
+
+                    </ul>
+
+                    <div>
+
+                        <button type="button" data-bs-toggle="modal"
+                                            data-bs-target="#pointUtilizationModal" onclick='handleEdit({{ row }})' class="btn btn-sm btn-de-warning">Point Utilization</button>
+                          <button type="button" class="btn btn-sm btn-de-secondary" data-name="{{ row.first_name }} {{ row.last_name }}" onclick="viewLinkedQueries(this, {{ row.user_id }})">Linked Queries</button>
+                        <a data-bs-toggle="modal"
+                                            data-bs-target="#rechargePointModal" onclick='handleEdit({{ row }})'  class="btn btn-sm btn-de-info">Recharge Points</a>
+                        <button type="button" data-bs-toggle="modal"
+                                            data-bs-target="#removeStudentModal" onclick='handleEdit({{ row }})'  class="btn btn-sm btn-de-danger">Remove Student</button>
+                   <button type="button" onclick='handleEdit({{ row }})' data-bs-toggle="modal"
+                                            data-bs-target="#resetStudentPasswordModal"  class="btn btn-sm btn-de-dark">Reset Password</button>
+
+
+                    </div>
+                </div><!--end card-body-->
+            </div> <!--end card-->
+        </div><!--end col-->
+{% endfor %}
+  <div id="csrf" hidden>{% csrf_token %}</div>
+    </div><!--end row-->
+
+
+</div><!-- container -->
+ <!--Add Student Modal-->
+
+          <div class="modal fade" id="studentModal" tabindex="-1" role="dialog"
+    aria-labelledby="exampleModalDefaultLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title m-0" id="exampleModalDefaultLabel">Create Student</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div><!--end modal-header-->
+            <div class="modal-body">
+                <div class="form-group row">
+                    <label for="first_name" class="col-sm-3 col-form-label">First Name <span class="text-danger">*</span></label>
+                    <div class="col-sm-9">
+                        <input type="text" id="first_name" name="first_name" class="form-control" placeholder="Enter First Name" required>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="last_name" class="col-sm-3 col-form-label">Last Name <span class="text-danger">*</span></label>
+                    <div class="col-sm-9">
+                        <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Enter Last Name" required>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="email" class="col-sm-3 col-form-label">Email <span class="text-danger">*</span></label>
+                    <div class="col-sm-9">
+                        <input type="email" id="email" name="email" class="form-control" placeholder="Enter Email" required>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="phone_no" class="col-sm-3 col-form-label">Phone Number <span class="text-danger">*</span></label>
+                    <div class="col-sm-9">
+                        <input type="tel" id="phone_no" name="phone_no" oninput="formatPhoneNumber(this)" pattern="\d{10}" class="form-control" placeholder="Enter Phone Number" required>
+                    </div>
+                </div>
+                 <div class="form-group row">
+                    <label for="institution_name" class="col-sm-3 col-form-label">Institution Name <span class="text-danger">*</span></label>
+                    <div class="col-sm-9">
+                        <input type="text" id="institution_name" name="institution_name" class="form-control" placeholder="Enter Institution Name" required>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="student_id" class="col-sm-3 col-form-label">Student ID </label>
+                    <div class="col-sm-9">
+                        <input type="text" id="student_id" name="student_id" class="form-control" placeholder="Enter Student ID" required>
+                    </div>
+                </div>
+
+                <div class="form-group row" hidden>
+                    <label for="password" class="col-sm-3 col-form-label">Password <span class="text-danger">*</span></label>
+                    <div class="col-sm-9 position-relative">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Enter Password" required>
+                   <i class="toggle-password fas fa-eye position-absolute" style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;" toggle="#password"></i>
+                    </div>
+                </div>
+
+
+
+
+
+
+            </div><!--end modal-body-->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-de-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-de-primary btn-sm" id="submit_btn">Submit</button>
+            </div><!--end modal-footer-->
+        </div><!--end modal-content-->
+    </div><!--end modal-dialog-->
+</div><!--end modal-->
+
+<div class="modal fade" id="removeStudentModal" tabindex="-1" role="dialog"
+     aria-labelledby="removeStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title m-0" id="removeStudentModalLabel">Remove Student</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div><!--end modal-header-->
+            <div class="modal-body">
+                <div class="form-group row">
+                    <label for="remove_email_id" class="col-sm-3 col-form-label">
+                        Email ID <span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-9">
+                        <input type="email" id="remove_email_id" name="remove_email_id"
+                               class="form-control" required disabled>
+                    </div>
+                </div>
+            </div><!--end modal-body-->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-de-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger btn-sm" id="remove_student_btn">
+                    Remove Student
+                </button>
+            </div><!--end modal-footer-->
+        </div><!--end modal-content-->
+    </div><!--end modal-dialog-->
+</div><!--end modal-->
+
+
+<div class="modal fade" id="resetStudentPasswordModal" tabindex="-1" role="dialog"
+     aria-labelledby="resetStudentPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title m-0" id="removeStudentModalLabel">Reset Student Password</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div><!--end modal-header-->
+            <div class="modal-body">
+                <div class="form-group row">
+                    <label for="remove_email_id" class="col-sm-3 col-form-label">
+                        Email ID <span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-9">
+                        <input type="email" id="reset_email_id" name="reset_email_id"
+                               class="form-control" required disabled>
+                    </div>
+                </div>
+            </div><!--end modal-body-->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-de-secondary btn-sm"
+                        data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger btn-sm" id="reset_password_btn">
+                    Send Reset Password Mail
+                </button>
+            </div><!--end modal-footer-->
+        </div><!--end modal-content-->
+    </div><!--end modal-dialog-->
+</div><!--end modal-->
+
+    <div class="modal fade" id="pointUtilizationModal" tabindex="-1" role="dialog"
+     aria-labelledby="pointUtilizationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title m-0" id="pointUtilizationModalLabel">Point Utilization</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div><!--end modal-header-->
+            <div class="modal-body">
+                <div class="form-group row mb-3">
+                    <label for="utilize_email_id" class="col-sm-3 col-form-label">
+                        Email ID <span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-9">
+                        <input type="email" id="utilize_email_id" name="email_id"
+                               class="form-control" required disabled>
+                    </div>
+                </div>
+
+                  <div class="form-group row mb-3" hidden>
+                    <label for="utilize_email_id" class="col-sm-3 col-form-label">
+                        User ID <span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-9">
+                        <input type="text" id="user_id" name="user_id"
+                               class="form-control" required >
+                    </div>
+                </div>
+
+
+
+
+                <div id="utilization_result_section" class="mt-3" style="display: none;">
+        <h6>Utilization Details</h6>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr style="background: #f8d9e6">
+                    <th>#</th>
+                    <th>Total Points</th>
+                    <th>Used Points</th>
+                    <th>Earned Points</th>
+                    <th>Remaining Points</th>
+                    <th>Command</th>
+                    <th>Status</th>
+                    <th>Created Date</th>
+                    <th>Package Activation Date</th>
+                </tr>
+            </thead>
+            <tbody id="utilization_table_body">
+                <!-- Dynamic rows will be appended here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="no_utilization_data" class="alert alert-warning" style="display: none;">
+        No utilization data found for this user.
+    </div>
+
+
+            </div><!--end modal-body-->
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-primary btn-sm" id="assigned_points_btn" hidden>
+                    Assinged Points
+                </button>
+                <button type="button" class="btn btn-warning btn-sm"
+                        id="utilize_points_btn">Utilization</button>
+            </div><!--end modal-footer-->
+        </div><!--end modal-content-->
+    </div><!--end modal-dialog-->
+</div><!--end modal-->
+
+<!-- Recharge Points Modal -->
+<div class="modal fade" id="rechargePointModal" tabindex="-1" aria-labelledby="rechargePointModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="rechargePointModalLabel">Recharge Points </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+
+
+          <div class="mb-3">
+            <label for="recharge_point_student" class="form-label">Student</label>
+            <input type="email" class="form-control" id="recharge_point_student" name="recharge_point_student" disabled required>
+          </div>
+          <div class="mb-3" hidden>
+            <label for="student_user_id" class="form-label">Student User ID</label>
+            <input type="text" class="form-control" id="student_user_id" name="student_user_id" disabled required>
+          </div>
+             <div class="mb-3">
+            <label for="recharge_points" class="form-label">Send Points</label>
+            <input type="number" class="form-control" id="recharge_points" name="recharge_points" placeholder="Enter number of points" required>
+          </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="send_points">Send Points</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+    <!-- Linked Queries Modal -->
+    <div class="modal fade" id="linkedQueriesModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" >Linked Queries By <span id="linkedby"></span></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+
+              <table class="table table-bordered table-striped">
+                  <thead>
+                      <tr>
+                          <th>#</th>
+                          <th>Assignment</th>
+                          <th>Command</th>
+                           <th>Query ID</th>
+                           <th>Remarks</th>
+                          <th>Submitted At</th>
+                      </tr>
+                  </thead>
+                  <tbody id="linked-queries-body">
+                      <!-- Dynamically added -->
+                  </tbody>
+              </table>
+              <div id="no-queries" class="alert alert-warning" style="display:none;">No linked queries found.</div>
+          </div>
+      </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_javascript %}
+
+ <script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+
+    <script>
+    function formatPhoneNumber(input) {
+        // Remove all non-numeric characters
+        let value = input.value.replace(/\D/g, '');
+
+        // Limit the value to exactly 10 digits
+        if (value.length > 10) {
+            value = value.substring(0, 10);
+        }
+
+        // Update the input value with the limited value
+        input.value = value;
+    }
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const firstNameInput = document.getElementById("first_name");
+    const phoneInput = document.getElementById("phone_no");
+    const passwordField = document.getElementById("password");
+
+    function generatePassword() {
+      const firstName = firstNameInput.value.trim();
+      const phone = phoneInput.value.trim();
+
+      if (firstName && phone.length >= 4) {
+        const last4Digits = phone.slice(-4);
+        const generatedPassword = `${firstName}#${last4Digits}`;
+        passwordField.value = generatedPassword;
+      } else {
+        passwordField.value = ""; // clear it if not enough data
+      }
+    }
+
+    // Attach the function to both input events
+    firstNameInput.addEventListener("input", generatePassword);
+    phoneInput.addEventListener("input", generatePassword);
+  });
+
+
+ $("#submit_btn").on("click", function () {
+
+              let first_name = $("#first_name").val().trim();
+              let last_name = $("#last_name").val().trim();
+              let email = $("#email").val().trim();
+              let institute = $("#institution_name").val().trim();
+              let student_id = $("#student_id").val().trim();
+              let mobile = $("#phone_no").val().trim();
+              let password = $("#password").val().trim();
+              if (!first_name || !last_name || !email || !mobile ) {
+                  showError("Fields are required!");
+                  return;
+              }
+               mydata = {
+                "first_name": first_name,
+                "last_name":last_name,
+                "email":email,
+                 "mobile":mobile,
+                   "password":password,
+                   "institute":institute,
+                   "student_id":student_id
+
+            }
+
+               $.ajax({
+                url: `/create-student/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+               beforeSend: function() {
+          // Show loader before the request starts
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait while we process.',
+                    onBeforeOpen: () => {
+                        Swal.showLoading();
+                    },
+                    allowOutsideClick: false, // Prevent closing the loader by clicking outside
+                    showConfirmButton: false, // Hide the confirm button
+                });
+            },
+
+                success: function (response) {
+                    Swal.close();
+                    if (response.status == 1) {
+                         Swal.fire({
+                            title: 'Success!',
+                            text: 'Student Registered successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                             location.reload();
+                        });
+                    } else {
+                        showError(response.msg || "Failed to register!");
+                    }
+                },
+                 error: function () {
+                   Swal.close();
+                    showError("Something went wrong! Please try again.");
+                },
+                 complete: function() {
+                // Close SweetAlert after the request completes (success or failure)
+
+              }
+            });
+          });
+ // Show Error Inside Modal
+    function showError(message) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message,
+            confirmButtonColor: "#d33"
+        });
+    }
+</script>
+
+     <script>
+function handleEdit(data){
+    //console.log(data)
+    $("#utilize_email_id").val(data.email)
+    $("#student_user_id").val(data.user_id)
+    $("#user_id").val(data.user_id)
+    $("#recharge_point_student").val(data.first_name+" "+data.last_name+" ("+data.student_id+") ")
+    $("#remove_email_id").val(data.email)
+    $("#reset_email_id").val(data.email)
+}
+$('#pointUtilizationModal').on('hidden.bs.modal', function () {
+    // Clear old data and reset UI state
+    $("#utilization_table_body").empty();
+    $("#utilization_result_section").hide();
+    $("#no_utilization_data").hide();
+    $("#utilize_email_id").val(""); // Optional: reset email field
+    $("#user_id").val(""); // Optional: reset hidden user ID
+});
+    </script>
+
+    <script>
+    $("#remove_student_btn").on("click", function () {
+
+
+              let email = $("#remove_email_id").val().trim();
+
+              if ( !email ) {
+                  showError("Email-id required!");
+                  return;
+              }
+               mydata = {
+                "email":email,
+            }
+
+               $.ajax({
+                url: `/delete-student/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+
+                success: function (response) {
+                    if (response.status == 1) {
+                         Swal.fire({
+                            title: 'Success!',
+                            text: 'Student Removed successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                             location.reload();
+                        });
+                    } else {
+                        showError(response.error || "Failed to remove!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+     $("#reset_password_btn").on("click", function () {
+
+
+              let email = $("#reset_email_id").val().trim();
+
+              if ( !email ) {
+                  showError("Email-id required!");
+                  return;
+              }
+               mydata = {
+                "user_email":email,
+            }
+
+               $.ajax({
+                url: `/send-reset-link-to-student/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+
+                success: function (response) {
+                    if (response.status == 1) {
+                         Swal.fire({
+                            title: 'Success!',
+                            text: response.msg,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                             location.reload();
+                        });
+                    } else {
+                        showError(response.msg || "Failed to sent!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+    </script>
+     <script>
+    $("#assigned_points_btn").on("click", function () {
+
+              let email = $("#utilize_email_id").val().trim();
+
+              if ( !email ) {
+                  showError("Email-id required!");
+                  return;
+              }
+               mydata = {
+
+                "email":email
+            }
+
+               $.ajax({
+                url: `/student-details-by-mail/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+
+                success: function (response) {
+                    if (response.status == 1) {
+                         Swal.fire({
+
+                            text: 'Assigned Points: '+response.data.points,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+
+                        }).then(() => {
+                            location.reload()
+                        });
+                    } else {
+                        showError(response.error || "Failed to remove!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+
+     $("#utilize_points_btn").on("click", function () {
+
+              let user_id = $("#user_id").val().trim();
+               mydata = {
+
+                "user_id":user_id
+            }
+
+               $.ajax({
+                url: `/student-point-details-by-userid/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+
+                success: function (response) {
+
+                            $("#utilization_table_body").empty();
+                            $("#utilization_result_section").hide();
+                            $("#no_utilization_data").hide();
+                            if (response.status == 1 && response.point_details.length > 0) {
+                                 response.point_details.forEach((item, index) => {
+                    let row = `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.total_points}</td>
+                            <td>${item.used_points}</td>
+                            <td>${item.earn_points}</td>
+                             <td>${item.remaining_points}</td>
+                            <td>${item.command_name}</td>
+                            <td>${item.insert_status || 'N/A'}</td>
+                            <td>${item.created_date ? new Date(item.created_date).toLocaleString() : 'N/A'}</td>
+                            <td>${item.package_activation_date ? new Date(item.package_activation_date).toLocaleString() : 'N/A'}</td>
+
+                        </tr>
+                    `;
+                    $("#utilization_table_body").append(row);
+                });
+
+                $("#utilization_result_section").show();
+            } else {
+                $("#no_utilization_data").show();
+            }
+        },
+
+
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+
+
+
+     function viewLinkedQueries(button, user_id) {
+         const studentFirstName = button.getAttribute('data-name');
+         $("#linkedby").html(studentFirstName)
+    $.ajax({
+        url: "/linked-queries/",
+        method: "POST",
+        headers: {
+            "X-CSRFToken": document.getElementById('csrf').querySelector('input').value
+        },
+        data: { user_id: user_id },
+        success: function (response) {
+            $("#linked-queries-body").empty();
+            $("#no-queries").hide();
+
+            if (response.status === 1 && response.linked_queries.length > 0) {
+
+                response.linked_queries.forEach((q, idx) => {
+                    let row = `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${q.assignment}</td>
+                            <td>${q.command}</td>
+                            <td>${q.query_id}</td>
+                             <td>${q.remark}</td>
+                            <td>${new Date(q.submitted_at).toLocaleString()}</td>
+                        </tr>
+                    `;
+                    $("#linked-queries-body").append(row);
+                });
+            } else {
+                $("#no-queries").show();
+            }
+
+            $("#linkedQueriesModal").modal('show');
+        },
+        error: function () {
+            showError("Failed to fetch linked queries.");
+        }
+    });
+}
+
+  $("#send_points").on("click", function () {
+
+              let student_user_id = $("#student_user_id").val().trim();
+              let recharge_points = $("#recharge_points").val().trim();
+
+              if ( !recharge_points ) {
+                  showError("No. of points to send required!");
+                  return;
+              }
+               mydata = {
+
+                "student_user_id":student_user_id,
+                   "recharge_points":recharge_points
+            }
+
+               $.ajax({
+                url: `/recharge-points-student/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+
+                success: function (response) {
+                    if (response.status == 1) {
+                         Swal.fire({
+
+                            text: response.data.message,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+
+                        }).then(() => {
+                            location.reload()
+                        });
+                    } else {
+                        showError(response.error || "Failed to remove!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+
+
+    </script>
+<script>
+    document.querySelectorAll(".toggle-password").forEach(function (icon) {
+        icon.addEventListener("click", function () {
+            const input = document.querySelector(this.getAttribute("toggle"));
+            if (input.type === "password") {
+                input.type = "text";
+                this.classList.remove("fa-eye");
+                this.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                this.classList.remove("fa-eye-slash");
+                this.classList.add("fa-eye");
+            }
+        });
+    });
+</script>
+{% endblock %}
+

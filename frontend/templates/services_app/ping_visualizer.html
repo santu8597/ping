@@ -1,0 +1,748 @@
+{% extends 'services_app/vertical_base_report.html' %}
+
+{% load static %}
+{% load timestamp %}
+{% block title %}Ping Report{% endblock %}
+
+{% block page_content %}
+
+{% block extra_css %}
+<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+
+    <style>
+    .page-wrapper,
+.page-content-tab {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    width: 100% !important
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+    </style>
+{% endblock %}
+
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+
+                        <li class="breadcrumb-item"><a href="{% url 'services_app:ping_command_page' %}">Ping</a>
+                        </li><!--end nav-item-->
+                        <li class="breadcrumb-item active">Reports</li>
+                    </ol>
+                </div>
+                <h4 class="page-title d-flex align-items-center">
+                    <a href="{% url 'services_app:ping_command_page' %}">
+                        <img src="{% static 'images/AIORI_logo.png' %}" alt="AIORI Logo" style="height: 30px; margin-right: 10px;">
+                    </a>
+                    Ping Reports
+                </h4>
+
+
+            </div><!--end page-title-box-->
+            <div class="btn-group no-print" style="float: left; padding-bottom: 8px;">
+                {% if is_editable %}
+                <!--<a href="{% url 'services_app:ping_command_page' %}?tab=report-1" class="d-flex align-items-center me-2" style="font-size: 1.2rem; color: #333; text-decoration: none;">
+                    <i class="mdi mdi-arrow-left-bold-circle me-1"></i>
+                    <span style="font-size: small;">Back</span>
+
+                </a>-->
+
+                <a href="javascript:history.back()" class="d-flex align-items-center me-2" style="font-size: 1.2rem; color: #333; text-decoration: none;">
+                    <i class="mdi mdi-arrow-left-bold-circle me-1"></i>
+                    <span style="font-size: small;">Back</span>
+                </a>
+                {% endif %}
+            </div>
+
+
+
+             <div class="btn-group no-print" style="float:right;padding-bottom: 8px; margin-left: 8px">
+                                    <button class="btn btn-sm btn-primary dropdown-toggle no-print" data-bs-toggle="dropdown" aria-expanded="false">
+                                      Export Result
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item no-print" onclick="downloadJSON()" id="exportJson" >Export as JSON</a></li>
+                                         <li><a class="dropdown-item no-print"  onclick="printScreen()">Download as PDF</a></li>
+                                    </ul>
+                    </div>
+        {% if is_editable %}
+
+
+         <button type="button" style="float:right;margin-right: 8px;" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#publicModal">
+    Query Visibility
+  </button>
+
+
+             {% if user_data.is_student %}
+                                <button type="button" style="float:right" class="btn btn-sm btn-warning me-3" data-bs-toggle="modal" data-bs-target="#assignmentModal">
+    Link Assignment
+  </button>
+                                {% endif %}
+        {% endif %}
+
+
+        </div><!--end col-->
+    </div>
+    <!-- end page title end breadcrumb -->
+
+
+    {% if type == 1 %}
+    <div class="row">
+          <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">One Time Regular Ping  for  <span style="color: blue; text-transform: lowercase">{{ ping_data.data.0.address }}</span></h2>
+
+                </div><!--end card-header-->
+                <div class="card-body">
+                     <p>Anchor Name: <span style="color:#d93636;">{{ ping_data.data.0.anchor_name }}</span></p>
+                    <p>Address: <span style="color: #ff0080">{{ ping_data.data.0.address }}</span> ----> Destination: <span style="color: #446eda">{{ ping_data.data.0.destination }}</span> </p>
+                    <p>RTT (MAX.): <span style="color: #29b029">{{ ping_data.data.0.rtt_max }}</span> - RTT (AVG.): <span style="color: #29b029">{{ ping_data.data.0.rtt_avg }}</span> - RTT (MIN.): <span style="color: #29b029">{{ ping_data.data.0.rtt_min }}</span>  </p>
+                   <p>Packet Loss: <span style="color:#d93636;">{{ ping_data.data.0.packet_loss }}</span> - Packet Received: <span style="color:#d93636;">{{ ping_data.data.0.packets_received }}</span> - Packet Sent: <span style="color:#d93636;">{{ ping_data.data.0.packets_sent }}</span></p>
+
+<p>Protocol: <span style="color:#d93636;">{{ ping_data.data.0.protocol }}</span></p>
+                </div><!--end card-body-->
+            </div><!--end card-->
+
+    </div><!--end row-->
+
+    <div class="row">
+
+        <div class="col-12">
+            <div class="card" >
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col" >
+        <p class="badge badge-soft-pink font-11 p-1 mb-0">Generated On {{ ping_data.data.0.time|timestamp }}</p>
+                        </div><!--end col-->
+                        <div class="col-auto">
+                            <button class="btn btn-dark no-print" onclick="downloadGraph()">Export as PNG</button>
+
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body" id="graphcontainer">
+                    <canvas id="rttChart_onetime_regular" width="300" height="100"></canvas>
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+
+    </div><!--end row-->
+{% elif type == 2 %}
+<div class="row">
+          <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">One Time Regular (Zone) Ping</h2>
+
+                </div><!--end card-header-->
+              {% for row in ping_data.data %}
+                <div class="card-body">
+                 <p class="badge badge-soft-pink font-11 p-1 mb-0" style="float: right">Generated On {{ row.time|timestamp }}</p>
+
+                    <p>Anchor Name: <span style="color:#d93636;">{{ row.anchor_name }}</span></p>
+                    <p>Destination: <span style="color: #446eda">{{ row.destination }}</span> </p>
+                    <p>RTT (MAX.): <span style="color: #29b029">{{ row.rtt_max }}</span> - RTT (AVG.): <span style="color: #29b029">{{ row.rtt_avg }}</span> - RTT (MIN.): <span style="color: #29b029">{{ row.rtt_min }}</span>  </p>
+                <hr>
+
+                </div><!--end card-body-->
+
+              {% endfor %}
+            </div><!--end card-->
+
+    </div><!--end row-->
+
+    <div class="row">
+
+        <div class="col-12">
+            <div class="card" >
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col" >
+
+                        </div><!--end col-->
+                        <div class="col-auto">
+                 <button class="btn btn-dark no-print" onclick="downloadGraph()">Export as PNG</button>
+
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body" id="graphcontainer">
+                    <canvas id="rttChart_onetime_regular_zone" width="300" height="100"></canvas>
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+
+    </div><!--end row-->
+
+{% elif type == 3 %}
+
+        <div class="row">
+          <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Time Range Query</h2>
+
+                </div><!--end card-header-->
+
+                <div class="card-body">
+                 <p class="badge badge-soft-pink font-11 p-1 mb-0" style="float: right">Generated On {{ ping_data.created_date|timestamp }}</p>
+                     <p><b>Command: </b> <span style="color:#162899;">{{ ping_data.query }}</span> | <b>Host: </b> <span style="color:#64008b;">{{ ping_data.hosts }}</span></p>
+                    <p><b>Anchor: </b> <span style="color:#d93636;">{{ ping_data.anchor_names }}</span> |  <b>Region: </b> <span style="color: #446eda">{{ ping_data.region }}</span></p>
+                    <p> <b>From Date: </b> {{ ping_data.created_date|timestamp }}  |  <b>To Date: </b> {{ ping_data.query_execution_end_date|timestamp }} </p>
+                    <p><b>Execution Interval Time: </b> <span style="color: #29b029">{{ ping_data.query_execution_interval_time }}</span> {{ ping_data.query_execution_interval_unit }} |  <b>Execution Status: </b> {{ ping_data.query_status }}  </p>
+                <hr>
+
+                </div><!--end card-body-->
+
+
+            </div><!--end card-->
+
+    </div><!--end row-->
+
+    <div class="row">
+
+        <div class="col-12">
+            <div class="card" >
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col" >
+                        <h5>All Date Graphical View</h5>
+                        </div><!--end col-->
+                        <div class="col-auto">
+                          <button class="btn btn-dark no-print" onclick="downloadGraph()">Export as PNG</button>
+
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body" id="graphcontainer">
+                    <canvas id="rttChart_periodic" width="300" height="100"></canvas>
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+
+    </div><!--end row-->
+
+
+        {% elif type == 4 %}
+        <div class="row">
+          <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Time Range Query</h2>
+
+                </div><!--end card-header-->
+{% for row in ping_data.query_details %}
+                <div class="card-body">
+                 <p class="badge badge-soft-pink font-11 p-1 mb-0" style="float: right">Generated On {{ row.created_date|timestamp }}</p>
+                     <p><b>Command: </b> <span style="color:#162899;">{{ row.commend_request_payload.cmd_value }}</span> | <b>Query Type: </b> <span style="color: #1bb240">{{ row.commend_request_payload.cmd_type }}</span> <b>Zone:</b> {{ row.zone_area_name }}</p>
+                    <p><b>Host: </b> <span style="color:#64008b;">{{ row.host_name }}</span> | <b>Host: </b> <span style="color:#64008b;">{{ row.host_ip }}</span></p>
+                    <p><b>Anchor: </b> <span style="color:#d93636;">{{ row.anchor_name }}</span> |  <b>Region: </b> <span style="color: #446eda">{{ row.commend_request_payload.region }}</span></p>
+                    <p> <b>From Date: </b> {{ row.created_date|timestamp }}  |  <b>To Date: </b> {{ row.query_execution_end_date|timestamp }} </p>
+                    <p><b>Execution Interval Time: </b> <span style="color: #29b029">{{ row.commend_request_payload.interval_time }}</span> {{ row.commend_request_payload.interval_unit }} |  <b>Execution Status: </b> {{ row.query_status }}  </p>
+
+                <hr>
+                {% endfor %}
+                </div><!--end card-body-->
+
+
+            </div><!--end card-->
+
+    </div><!--end row-->
+
+    <div class="row">
+
+        <div class="col-12">
+            <div class="card" >
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col" >
+<h5>All Date Graphical View</h5>
+                        </div><!--end col-->
+                        <div class="col-auto">
+                                                 <button class="btn btn-dark no-print" onclick="downloadGraph()">Export as PNG</button>
+
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body" id="graphcontainer">
+                    <canvas id="rttChart_periodic_zone" width="300" height="100"></canvas>
+
+
+               <br>
+                    <br>
+                    {% for key, val in rtt_datas.items %}
+              {% for row in val %}
+
+
+                  <li>{{ key }} - <span style="color: #0a53be">{{ row.time|timestamp}}</span> - <span style="color: #1bb240">{{ row.rtt_avg }}</span> ms</li>
+                  {% endfor %}
+                   <hr>
+{% endfor %}
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+
+    </div><!--end row-->
+
+
+
+{% endif %}
+
+
+
+
+
+
+</div><!-- container -->
+ <!-- Assignment Modal -->
+<div class="modal fade" id="assignmentModal" tabindex="-1" aria-labelledby="assignmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="assignmentModalLabel">Select Assignment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="assignment" class="form-label">Choose Assignment <span class="text-danger">*</span></label>
+            <select class="form-select" id="assignment" name="assignment">
+              <option value="">-- Select Assignment --</option>
+                {% for row in assignment_list %}
+              <option value="{{ row.id }}">{{ row.assignment_name }}</option>
+                {% endfor %}
+            </select>
+          </div>
+
+         <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="commandName" class="form-label">Command</label>
+            <input type="text" class="form-control" id="commandName" name="commandName" value="ping" disabled>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="query_id" class="form-label">Query ID</label>
+            <input type="text" class="form-control" id="query_id" name="query_id" value="{{ history_id }}" disabled>
+          </div>
+        </div>
+
+          <div class="mb-3">
+            <label for="assignment_query_type" class="form-label">Query Type</label>
+               <select class="form-select" id="assignment_query_type" name="assignment_query_type">
+              <option value="">-- Select Query Type --</option>
+
+              <option value="regular">Regular</option>
+                    <option value="periodic">Periodic</option>
+
+            </select>
+
+          </div>
+          <div class="mb-3">
+
+            <label for="assignment_zone" class="form-label">Zone</label>
+
+               <select class="form-select" id="assignment_zone" name="assignment_zone">
+                                <option value="">--SELECT ZONE--</option>
+                                {% for row in zone_list %}
+                                <option value="{{ row.user_zone_name }}">{{ row.user_zone_name }}</option>
+                              {% endfor %}
+                            </select>
+          </div>
+
+
+
+           <div class="mb-3">
+            <label for="assignment_remarks" class="form-label">Remarks</label>
+            <input type="text" class="form-control" id="assignment_remarks" name="assignment_remarks" placeholder="Enter remarks" >
+          </div>
+
+
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button" class="btn btn-warning" id="link_btn">Link</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+   <!-- Public Modal -->
+<div class="modal fade" id="publicModal" tabindex="-1" aria-labelledby="publicModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="publicModalLabel">Measurement Visibility</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+          <p><i>If made public, this measurement will be visible in the AIORI Public Measurements section, accessible to the entire community.</i></p>
+
+
+
+         <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="manage_public_private" class="form-label">Manage Query </label>
+            <select class="form-select" id="manage_public_private" name="manage_public_private" >
+              <option>-- Select--</option>
+              <option value="true">Public</option>
+              <option value="false">Private</option>
+            </select>
+          </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="manage_query_id" class="form-label">Query ID</label>
+                <input type="text" class="form-control" id="manage_query_id" name="manage_query_id" value="{{ history_id }}" disabled>
+              </div>
+              </div>
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button" id="submit_manage_query_btn" class="btn btn-success">Submit</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+    <div id="csrf" hidden>{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_javascript %}
+ <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+     <script src="{% static 'services_app/js/public_report.js' %}"></script>
+
+    {% if type == 1 %}
+
+
+<script>
+//Onetime regular query
+    const data = {{ anchor_data|safe }};
+
+    const labels = ["RTT Max", "RTT Avg", "RTT Min"];
+    const values = [data.rtt_max, data.rtt_avg, data.rtt_min]
+
+    const ctx = document.getElementById('rttChart_onetime_regular').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `One Time Regular Query RTT Values for Domain ${data.address}`,
+                data: values,
+                backgroundColor: [
+                    'rgba(239,114,138,0.7)',
+                    'rgba(134,205,253,0.7)',
+                    'rgba(176,234,234,0.7)'
+                ]
+            }
+            ]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: `RTT Metrics for Domain ${data.address}`
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'RTT (ms)'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+    {% elif type == 2 %}
+
+
+
+
+    <script>
+    //Regular with zone query
+    const rawData = {{ data|safe }};  // passed from Django context
+
+    const labels = rawData.map(item => item.anchor_name);
+    const rttMin = rawData.map(item => item.rtt_min);
+    const rttAvg = rawData.map(item => item.rtt_avg);
+    const rttMax = rawData.map(item => item.rtt_max);
+
+    const ctx = document.getElementById('rttChart_onetime_regular_zone').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'RTT Max',
+                    data: rttMax,
+                    backgroundColor: 'rgba(239,114,138,0.7)'
+                },
+                {
+                    label: 'RTT Avg',
+                    data: rttAvg,
+                    backgroundColor: 'rgba(134,205,253,0.7)'
+                },
+                {
+                    label: 'RTT Min',
+                    data: rttMin,
+                    backgroundColor: 'rgba(176,234,234,0.7)'
+                }
+
+            ]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'RTT Metrics per Anchor'
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: false,
+                    title: {
+                        display: true,
+                        text: 'Anchor Name'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'RTT (ms)'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+
+{% elif type == 3 %}
+
+     <script>
+     //Periodic without zone query
+        // Load JSON data passed from Django
+
+        const rttData_initial = {{ json_data|safe }};
+        const rttData = rttData_initial['data'];
+        const firstKey = Object.keys(rttData)[0];
+        const records = rttData[firstKey];
+
+
+        const labels = records.map(item => new Date(item.time).toLocaleTimeString());
+        const dataPoints = records.map(item => item.rtt_avg);
+
+        const ctx = document.getElementById('rttChart_periodic').getContext('2d');
+        const rttChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'RTT Avg (ms)',
+                    data: dataPoints,
+                    borderColor: 'rgb(70,165,218)',
+                    backgroundColor: 'rgba(99,190,255,0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'RTT Avg over Time for '+firstKey
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'RTT (ms)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+{% elif type == 4 %}
+
+ <script>
+ // Periodic Zone Query
+    const rttData_initial= {{ json_data|safe }};
+    const rttData = rttData_initial['data'];
+
+    const labels = rttData[Object.keys(rttData)[0]].map(item => new Date(item.time).toLocaleTimeString());
+
+    const datasets = Object.entries(rttData).map(([server, records]) => {
+        return {
+            label: server,
+            data: records.map(item => item.rtt_avg),
+            borderColor: getRandomColor(),
+            backgroundColor: 'rgba(99,190,255,0.2)',
+            fill: false,
+            tension: 0.3
+        };
+    });
+
+    const ctx = document.getElementById('rttChart_periodic_zone').getContext('2d');
+    const rttChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'RTT Avg over Time (Zone with Anchors)'
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'RTT (ms)'
+                    }
+                }
+            }
+        }
+    });
+
+    function getRandomColor() {
+        return 'hsl(' + 360 * Math.random() + ', 70%, 60%)';
+    }
+</script>
+{% endif %}
+    <script>
+function downloadJSON() {
+    const data = JSON.parse(`{{ json_data|escapejs }}`);
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.getElementById("exportJson");
+    link.href = url;
+    link.download = "ping_"+`{{ history_id|safe }}`+".json";
+}
+</script>
+<script>
+    function downloadGraph() {
+        const graphContainer = document.getElementById("graphcontainer");
+        html2canvas(graphContainer).then(canvas => {
+            const link = document.createElement("a");
+            link.download = "ping_graph_"+`{{ history_id|safe }}`+".png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    }
+</script>
+
+
+
+    <script>
+      function printScreen() {
+    window.print();
+}
+
+//Link assignment codes starts from here
+ $("#link_btn").on("click", function () {
+         let assignment = $("#assignment").val();
+         let commandName = $("#commandName").val();
+         let query_id = $("#query_id").val();
+         let assignment_remarks = $("#assignment_remarks").val();
+         let assignment_query_type = $("#assignment_query_type").val();
+         let assignment_zone = $("#assignment_zone").val();
+           if (!assignment) {
+            alert("Please Enter Assignment Name!");
+            return;
+        }
+
+         mydata = {
+             "assignment": assignment,
+             "command":commandName,
+             "query_id":query_id,
+             "assignment_remarks":assignment_remarks,
+             "assignment_query_type": assignment_query_type,
+             "assignment_zone": assignment_zone
+         }
+               $.ajax({
+                url: `/link-query/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+                success: function (response) {
+                    if (response.status == 1) {
+                         Swal.fire({
+                            title: 'Success!',
+                            text: 'Query Linked to Assignment Successfully',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                             location.reload();
+                        });
+                    } else {
+                        showError(response.error || "Failed to link query to assignment!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+ // Show Error Inside Modal
+    function showError(message) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message,
+            confirmButtonColor: "#d33"
+        });
+    }
+
+
+
+    </script>
+
+    {% endblock %}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border: 1px solid #e3e3e3;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .email-header {
+            background-color: rgba(16, 22, 152, 0.8);
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+        .email-body {
+            padding: 20px;
+        }
+        .email-body h2 {
+            color: #333333;
+        }
+        .email-body p {
+            color: #555555;
+            line-height: 1.6;
+        }
+        .email-footer {
+            background-color: #f3f3f3;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #777777;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            color: #ffffff;
+            background-color: rgb(75, 214, 5);
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .btn:hover {
+            background-color: rgba(255, 113, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Email Header -->
+        <div class="email-header">
+            <h1>Welcome to Our Community!</h1>
+        </div>
+
+        <!-- Email Body -->
+        <div class="email-body">
+            <h2>Hi {{user_name}},</h2>
+            <p>
+                We're thrilled to have you join us! At <strong> Internet Measurement & Standard Development platform AIORI portal</strong>, we aim to create a space where you can achieve your goals.
+            </p>
+            <p>
+                To get started, click the button below to explore your dashboard and start your journey with us.
+            </p>
+            <a href="{{dashboard_link}}" class="btn" style="color: white;text-decoration: none">Go To Dashboard </a>
+            <p>
+                If you have any questions or need assistance, our support team is just a click away. We're here to help!
+            </p>
+            <p>Welcome aboard,</p>
+            <p><strong>The AIORI Management Team</strong></p>
+
+        </div>
+
+        <!-- Email Footer -->
+        <div class="email-footer">
+            <p>
+                This email was sent to {{user_email}} because you signed up for AIORI portal.<br>
+                If you did not sign up, please contact our support team immediately.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

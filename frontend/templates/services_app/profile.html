@@ -1,0 +1,691 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+{% load timestamp %}
+{% block title %}Profile{% endblock %}
+
+{% block extra_css %}
+
+  <link href="{% static 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static '/libs/simple-datatables/style.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+   <style>
+   input[type="radio"]:checked + label {
+  font-weight: bold;
+  color: #840dd3; /* Bootstrap primary blue */
+       font-size: large;
+}
+
+   </style>
+{% endblock %}
+
+
+
+
+{% block page_content %}
+
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+                        
+                        <li class="breadcrumb-item"><a href="#">Menus</a></li>
+                        <li class="breadcrumb-item active">Profile</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Profile</h4>
+            </div>
+            <!--end page-title-box-->
+        </div>
+        <!--end col-->
+    </div>
+    <!-- end page title end breadcrumb -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="met-profile">
+                        <div class="row">
+                            <div class="col-lg-4 align-self-center mb-3 mb-lg-0">
+                                <div class="met-profile-main">
+                                    <div class="met-profile-main-pic">
+                                        <img src="{{ user_data.profile_image }}" alt="" height="110"
+                                            class="rounded-circle">
+                                    </div>
+                                    <div class="met-profile_user-detail">
+                                        <h5 class="met-user-name">{{ user_data.first_name }} {{ user_data.last_name }}</h5>
+                                        <p class="mb-0 met-user-name-post">{{ user_data.designation }}</p>
+                                    </div>
+                                </div>
+                            </div><!--end col-->
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                        <div class="tab-pane p-3 active" id="Post" role="tabpanel">
+                            <div class="row">
+                                <div class="col-lg-9">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="text-muted mb-0">Subscription features have been removed.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                </div><!--end card-header-->
+                                        <div class="card-body">
+                                              <div class="table-responsive">
+                        <table class="table table-bordered mb-0 table-centered">
+                            <thead>
+                            <tr>
+                                <th>Package</th>
+                               <!-- <th>Total Points</th>-->
+                                <th>Used Points</th>
+                                <!--<th>Remaining Points</th>-->
+                                <th>Remaining Points</th>
+                                <th>Activation Date</th>
+                                 <th>Deactivation Date</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                               <td> {{ subscription_data.package.package_name }}</td>
+
+                              <!--  <td>{{ subscription_data.total_points|floatformat:0 }}</td>-->
+                                <td>{{ subscription_data.used_points|floatformat:0 }}</td>
+                                <!--<td>{{ subscription_data.remaining_points|floatformat:0 }}</td>-->
+                               <td>{{ user_point.remaining_points|floatformat:0 }}</td>  <!--Temporary fix added on 21-08-2025-->
+                                <td>{{ subscription_data.package_activation_date }}</td>
+                                 <td>{{ subscription_data.package_deactivation_date }}</td>
+                                <td class="text-end">
+                                     <a class="btn btn-sm btn-primary" href="#view_utilization">View Utilizations</a>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table><!--end /table-->
+                    </div><!--end /tableresponsive-->
+                                        </div>
+
+                                    </div>
+
+                                     <div class="card" id="view_utilization">
+                <div class="card-header">
+                      <h4 class="card-title">Utilization Details</h4>
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="datatable_1">
+                            <thead class="thead-light">
+                              <tr>
+                                <th>No</th>
+                                <th>Executed Command</th>
+                                <th>Previous Points</th>
+                                <th>Points Used</th>
+                                <th>Points Earn</th>
+                                <th>Status</th>
+                                <th>Remaining Points</th>
+                                 <th>Utilization Date</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in point_utilization %}
+                            <tr>
+                            <td>{{ forloop.counter }}</td>
+                               <td> {{ row.command_name }}</td>
+
+                                <td>{{ row.total_points|floatformat:0 }}</td>
+                                <td>{{ row.used_points|floatformat:0 }}</td>
+                                 <td>{{ row.earn_points|floatformat:0 }}</td>
+                                  <td>{{ row.insert_status }}</td>
+                                <td>{{ row.remaining_points|floatformat:0 }}</td>
+
+                                 <td>{{ row.created_date|timestamp }}</td>
+
+                            </tr>
+{% endfor %}
+                            </tbody>
+                          </table>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+                                </div><!--end col-->
+
+                            </div><!--end row-->
+                        </div>
+
+                        <div class="tab-pane p-3" id="Edit" role="tabpanel">
+                            <div class="row">
+                                <div class="col-lg-6 col-xl-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <div class="row align-items-center">
+                                                <div class="col">
+                                                    <h4 class="card-title">Personal Information</h4>
+                                                </div><!--end col-->
+                                            </div> <!--end row-->
+                                        </div><!--end card-header-->
+                                        <div class="card-body">
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label" for="first_name">First
+                                                    Name</label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <input class="form-control" type="text" id="first_name" name="first_name" value="{{ user_data.first_name }}">
+                                                </div>
+                                            </div>
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label" for="last_name">Last
+                                                    Name</label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <input class="form-control" type="text" id="last_name" name="last_name" value="{{ user_data.last_name }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label" for="designation">Designation</label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <input class="form-control" type="text" value="{{ user_data.designation }}" id="designation" name="designation">
+                                                </div>
+                                            </div>
+
+
+
+
+                                        {% if user_data.is_faculty or user_data.is_student  %}
+                                         <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label" for="institution_name">Institution
+                                                    Name</label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <input class="form-control" type="text" value="{{ user_data.institution_name }}" id="institution_name" name="institution_name">
+                                                </div>
+                                            </div>
+                                            {% else %}
+                                             <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label" for="company_name">Company
+                                                    Name</label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <input class="form-control" type="text" value="{{ user_data.company_name }}" id="company_name" name="company_name">
+
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">Contact
+                                                    Phone</label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i
+                                                                class="las la-phone"></i></span>
+                                                        <input type="text" class="form-control" value="{{ user_data.phone_no }}"
+                                                           id="phone" name="phone" aria-describedby="basic-addon1" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">Email
+                                                    Address</label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="las la-at"></i></span>
+                                                        <input type="text" class="form-control"
+                                                            value="{{ user_data.email }}"
+                                                            aria-describedby="basic-addon1" disabled>
+                                                         <span class="form-text text-muted font-12">We'll never share your
+                                                        email with anyone else.</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label" >Address
+                                                   </label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i
+                                                                class="la la-globe"></i></span>
+                                                        <input type="text" class="form-control" id="address" name="address"
+                                                            value="{{ user_data.address }}" placeholder="Address"
+                                                            aria-describedby="basic-addon1">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">Country/State</label>
+                                                <div class="col-lg-4 col-xl-4">
+                                                    <select class="form-select" id="country" name="country">
+                                                    <option value="" {% if not user_data.country %}disabled selected{% endif %}>Select Country</option>
+                                                        {% for row in countries %}
+
+                                                        <option value="{{ row.id }}" {% if user_data.country == row.id %}selected{% endif %}>{{ row.country_name }}</option>
+
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                 <div class="col-lg-4 col-xl-4">
+                                                    <select class="form-select" id="state" name="state">
+                                                    <option value="" {% if not user_data.state %}disabled selected{% endif %}>Select State</option>
+                                                        {% for row in states %}
+                                              <option value="{{ row.id }}" {% if user_data.state == row.id %}selected{% endif %}>{{ row.state_name }}</option>
+                                             {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">City/Pincode</label>
+                                                <div class="col-lg-4 col-xl-4">
+                                                    <select class="form-select" id="city" name="city">
+                                                    <option value="" {% if not user_data.city %}disabled selected{% endif %}>Select City</option>
+                                                        {% for row in cities %}
+                                              <option value="{{ row.id }}" {% if user_data.city == row.id %}selected{% endif %}>{{ row.city_name }}</option>
+                                             {% endfor %}
+                                                    </select>
+                                                </div>
+
+                                                 <div class="col-lg-4 col-xl-4">
+                                                    <div class="input-group">
+
+                                                        <input type="text" class="form-control" id="pincode" name="pincode" value="{{ user_data.pin_code|default:0 }}"
+                                                            aria-describedby="basic-addon1">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                         <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">Linkedin URL
+                                                    </label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="las la-linkedin-in"></i></span>
+                                                        <input type="text" class="form-control"
+                                                            value="{{ user_data.linkedin_url }}" id="linkedin_link" name="linkedin_link"
+                                                            aria-describedby="basic-addon1">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                          <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">Github URL
+                                                    </label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="las la-github-square"></i></span>
+                                                        <input type="text" class="form-control"
+                                                            value="{{ user_data.github_url }}" id="github_link" name="github_link"
+                                                            aria-describedby="basic-addon1">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <input type="text" class="form-control"
+                                                            value="{{ user_data.profile_image }}" id="same_profile_img_path" name="same_profile_img_path"
+                                                            aria-describedby="basic-addon1" hidden>
+
+                                          <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">HNDB URL
+                                                    </label>
+                                                <div class="col-lg-9 col-xl-8">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="las la-link"></i></span>
+                                                        <input type="text" class="form-control" id="hndb_link" name="hndb_link"
+                                                            value="{{ user_data.hndb_url }}"
+                                                            aria-describedby="basic-addon1">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="form-group mb-3 row">
+                                                <div class="col-lg-9 col-xl-8 offset-lg-3">
+                                                    <button type="button" id="update_btn" class="btn btn-success">Submit</button>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> <!--end col-->
+
+                                <div class="col-lg-6 col-xl-6">
+                                  <div class="card">
+                                  <div class="card-header">
+                                    <h4 class="card-title">User Role</h4>
+                                  </div>
+                                  <div class="card-body">
+                                    <div class="d-flex gap-4">
+                                      <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="role" id="roleStudent" value="student"
+                                          {% if user_data.is_student %}checked{% endif %} disabled>
+                                        <label class="form-check-label" for="roleStudent">Student</label>
+                                      </div>
+
+                                      <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="role" id="roleFaculty" value="faculty"
+                                          {% if user_data.is_faculty %}checked{% endif %} disabled>
+                                        <label class="form-check-label" for="roleFaculty">Faculty</label>
+                                      </div>
+
+                                      <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="role" id="roleUser" value="user"
+                                          {% if not user_data.is_student and not user_data.is_faculty %}checked{% endif %} disabled>
+                                        <label class="form-check-label" for="roleUser">User</label>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="card">
+                                        <div class="card-header">
+                                        <h4 class="card-title">Profile Image Upload</h4>
+                    <p class="text-muted mb-0">Upload 128 x 128 for best results</p>
+                                        </div><!--end card-header-->
+                                        <div class="card-body">
+
+                                            <div class="d-grid">
+                                               <div class="input-group">
+                                                <input type="file" class="form-control" id="input-file" name="input-file" accept="image/*" aria-label="Upload">
+                                                <button class="btn btn-info" type="button" id="upload-button">Upload</button>
+                                               </div>
+
+                                                <!-- Preview Image -->
+                                                <div class="mt-3">
+                                                    <img id="preview-image" src="#" alt="Image Preview" class="img-thumbnail d-none" style="max-width: 200px; max-height: 200px;" />
+                                                </div>
+
+                                            </div>
+                                        </div><!--end card-body-->
+                                    </div><!--end card-->
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4 class="card-title">Change Password</h4>
+                                        </div><!--end card-header-->
+                                        <div class="card-body">
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">Current
+                                                    Password</label>
+                                                <div class="col-lg-9 col-xl-8 position-relative">
+                                                    <input class="form-control" type="password" placeholder="Password" id="password_old" name="password_old">
+<i class="fas fa-eye toggle-password" toggle="#password_old" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="form-group mb-3 row">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">New
+                                                    Password</label>
+                                                <div class="col-lg-9 col-xl-8 position-relative">
+                                                    <input class="form-control" type="password" name="password_new" id="password_new"
+                                                        placeholder="New Password">
+                                                    <i class="fas fa-eye toggle-password" toggle="#password_new" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="form-group mb-3 row ">
+                                                <label
+                                                    class="col-xl-3 col-lg-3 text-end mb-lg-0 align-self-center form-label">Confirm
+                                                    Password</label>
+                                                <div class="col-lg-9 col-xl-8 position-relative">
+                                                    <input class="form-control" type="password"
+                                                        placeholder="Re-Password" id="password2" name="password2">
+                                                    <i class="fas fa-eye toggle-password" toggle="#password2" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="form-group mb-3 row">
+                                                <div class="col-lg-9 col-xl-8 offset-lg-3">
+                                                    <button type="button" class="btn btn-primary" id="change_password_btn">Change
+                                                        Password</button>
+                                                </div>
+                                            </div>
+                                        </div><!--end card-body-->
+                                    </div><!--end card-->
+
+
+
+
+{#                                 <div class="card">#}
+{#                                        <div class="card-header">#}
+{#                                            <h4 class="card-title">For current updates </h4>#}
+{#                                        </div><!--end card-header-->#}
+{#                                        <div class="card-body">#}
+{##}
+{#                                            <div class="form-check">#}
+{#                                                <input class="form-check-input" type="checkbox" value=""#}
+{#                                                    id="Email_Notifications" checked>#}
+{#                                                <label class="form-check-label" for="Email_Notifications">#}
+{#                                                    Email Notifications#}
+{#                                                </label>#}
+{#                                                <span class="form-text text-muted font-12 mt-0">Subscribe</span>#}
+{#                                            </div>#}
+{#                                        </div><!--end card-body-->#}
+{#                                    </div><!--end card-->#}
+
+
+
+                                </div> <!-- end col -->
+                            </div><!--end row-->
+                        </div>
+                    </div>
+                </div> <!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+    </div><!--end row-->
+
+</div><!-- container -->
+ <div id="csrf" hidden>{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_javascript %}
+
+
+<script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+<script src="{% static '/libs/simple-datatables/umd/simple-datatables.js' %}"></script>
+<script src="{% static '/js/pages/datatable.init.js' %}"></script>
+
+<script>
+
+      $("#update_btn").on("click", function () {
+              let first_name = $("#first_name").val();
+              let last_name = $("#last_name").val();
+              let institute = $("#institution_name").val();
+              let designation = $("#designation").val();
+              let pincode = $("#pincode").val();
+              let mobile = $("#phone").val();
+              let address = $("#address").val();
+               let country = $("#country").val();
+                let city = $("#city").val();
+                let state = $("#state").val();
+                let company = $("#company_name").val();
+                let github_link = $("#github_link").val();
+                let hndb_link = $("#hndb_link").val();
+                let linkedin_link = $("#linkedin_link").val();
+                let img_path =$("#same_profile_img_path").val();
+
+                // Get the checked role
+                let selectedRole = $("input[name='role']:checked").val();
+                let is_student = selectedRole === "student";
+                let is_faculty = selectedRole === "faculty";
+
+
+
+
+               mydata = {
+                "first_name": first_name,
+                "last_name":last_name,
+                 "mobile":mobile,
+                   "address":address,
+                   "institute":institute,
+                   "designation":designation,
+                   "pincode":pincode,
+                   "company":company,
+                   "country":country,
+                   "state":state,
+                   "city":city,
+                   "github_link":github_link,
+                   "hndb_link":hndb_link,
+                   "linkedin_link":linkedin_link,
+                    "is_student": is_student,
+                    "is_faculty": is_faculty,
+                   "img_path": img_path
+            }
+            console.log("====",mydata)
+               $.ajax({
+                url: `/update-profile/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+                success: function (response) {
+                    if (response.status == 1) {
+                         Swal.fire({
+                            title: 'Success!',
+                            text: response.msg,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                             location.reload();
+                        });
+                    } else {
+                        showError(response.error || "Failed to update profile!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+ // Show Error Inside Modal
+    function showError(message) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message,
+            confirmButtonColor: "#d33"
+        });
+    }
+</script>
+
+<script>
+$(document).ready(function () {
+    // Show preview when a file is selected
+    $("#input-file").change(function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            $('#preview-image').attr('src', e.target.result).removeClass('d-none');
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Handle upload on button click
+    $("#upload-button").click(function () {
+        const file = $("#input-file")[0].files[0];
+        if (!file) {
+            alert("Please select a file first.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("profile_image", file);
+
+        $.ajax({
+            url: '/upload-profile-image/',  // Update to your actual URL
+            type: 'POST',
+            headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},  // If using session auth
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                alert(response.data.msg || "Image uploaded successfully.");
+                console.log(response);
+                location.reload();
+            },
+            error: function (xhr) {
+                const err = xhr.responseJSON?.msg || "Upload failed.";
+                alert(err);
+                console.error(xhr.responseJSON);
+            }
+        });
+    });
+
+
+});
+</script>
+<script>
+    document.querySelectorAll(".toggle-password").forEach(function (icon) {
+        icon.addEventListener("click", function () {
+            const input = document.querySelector(this.getAttribute("toggle"));
+            if (input.type === "password") {
+                input.type = "text";
+                this.classList.remove("fa-eye");
+                this.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                this.classList.remove("fa-eye-slash");
+                this.classList.add("fa-eye");
+            }
+        });
+    });
+
+    // Change password
+     $("#change_password_btn").on("click", function () {
+              let password_old = $("#password_old").val();
+              let password_new = $("#password_new").val();
+              let password2 = $("#password2").val();
+
+               mydata = {
+                "password_old": password_old,
+                "password_new":password_new,
+
+            }
+               $.ajax({
+                url: `/change-profile-password/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+
+                success: function (response) {
+                    if (response.status == 1) {
+                         Swal.fire({
+                            title: 'Success!',
+                            text: response.msg,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                             location.reload();
+                        });
+                    } else {
+                        showError(response.error || "Failed to change profile password!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+</script>
+
+{% endblock %}

@@ -1,0 +1,646 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+
+
+    <meta charset="utf-8" />
+    <title>Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta content="AIORI Services Portal" name="description" />
+    <meta content="" name="author" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{% static 'images/logo-sm.png' %}">
+
+
+     <!-- App css -->
+     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
+     <link href="{% static 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+  <link href="{% static 'css/message_alert.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'services_app/css/loader.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+</head>
+<style>
+    .otp-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        #verify-otp-btn, #send-otp-btn,
+        #verify-mobile-otp-btn, #send-mobile-otp-btn {
+            margin-top: 1em;
+        }
+
+        #resend_otp, #resend_mobile_otp {
+          cursor: pointer;
+        }
+
+        #resend_otp.disabled, #resend_mobile_otp.disabled {
+            pointer-events: none;  /* Prevent clicking */
+            color: #ccc;           /* Change the color to indicate it's disabled */
+            text-decoration: none; /* Optionally remove underline */
+            cursor: not-allowed;
+        }
+
+</style>
+<body id="body" class="auth-page" style="background-image: url('/static/images/p-1.png'); background-size: cover; background-position: center center;">
+
+ {% include 'services_app/loader.html' %}
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="alert alert-{{ message.tags }}">
+                <span class="message-text">{{ message }}</span>
+                <span class="close-btn" id="close-btn">&times;</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+   <!-- Log In page -->
+    <div class="container-md">
+        <div class="row vh-100 d-flex justify-content-center">
+            <div class="col-12 align-self-center">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6 mx-auto">
+                            <div class="card">
+                                <div class="card-body p-0 auth-header-box" style="background: linear-gradient(30deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);">
+                                    <div class="text-center p-3">
+                                        <a href="{% url 'services_app:index' %}" class="logo logo-admin">
+                                            <img src="{% static 'images/AIORIlogo.png' %}" height="80" alt="logo" class="auth-logo">
+                                        </a>
+                                        <h4 class="mt-3 mb-1 fw-semibold text-white font-18">Sign up to continue to AIORI services Portal.</h4>
+                                        <p class="text-muted  mb-0">Internet Measurement & Standard Development Platform</p>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-0">
+
+                             <div class="row my-4" >
+                                <div class="col-md-6 mb-2">
+                                      <div class="form-group">
+                                        <label class="form-label" for="first_name">First Name</label>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Enter First Name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                   <div class="form-group">
+                                        <label class="form-label" for="last_name">Last Name</label>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter Last Name" required>
+                                    </div>
+                                </div>
+                            </div>
+                             <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                              <div class="form-group">
+                                                <label class="form-label" for="email">Email</label>
+                                                   <div class="otp-section">
+                                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+                                                <small id="emailHelp" class="form-text text-muted">
+                                                  <i>Faculty must use their organization email (e.g. yourname@college.edu)
+                                                  </i></small>
+                                                    <input type="hidden" name="email-status" id="email-status" value="invalid" data-email="">
+
+                                                    <!-- Send OTP Button (Initially hidden) -->
+                                                    <a id="resend_otp" style="display: none;" class="disabled" disabled>Resend OTP</a>
+                                                    <button type="button" id="send-otp-btn" class="btn btn-sm btn-warning" onclick="sendOTP()" style="display: none;" disabled>Send OTP</button>
+                                                   </div>
+                                                </div>
+                                       </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-group">
+                                            <label class="form-label" for="mobileNo">Mobile Number <span class="text-danger">*</span></label>
+                                             <div class="otp-section">
+                                            <input type="tel" class="form-control" id="mobile" oninput="formatNumber(this)" pattern="\d{10}" name="mobile" placeholder="Enter Mobile Number" required>
+
+                                        <!-- Hidden Field to Track Email Validation Status -->
+                                                <input type="hidden" name="mobile-status" id="mobile-status" value="invalid" data-mobile="">
+
+                                                <!-- Send OTP Button (Initially hidden) -->
+                                                 <a id="resend_mobile_otp" style="display: none;" class="disabled" disabled>Resend OTP</a>
+                                                <button type="button" id="send-mobile-otp-btn" class="btn btn-sm btn-info" onclick="sendmobileOTP()" style="display: none;" disabled>Send OTP</button>
+
+                                                </div>
+
+                                        </div>
+                                    </div>
+                                    </div>
+                             <div class="row">
+
+    <!-- OTP Verification Section (Initially hidden) -->
+                        <div class="col-md-6 mb-2">
+
+        <div id="otp-section" style="display: none;">
+            <label for="otp" class="form-label">Enter OTP:</label>
+            <div class="otp-section">
+            <input type="text" class="form-control" id="otp" name="otp" maxlength="6" placeholder="Enter 6-digit OTP">
+            <button type="button" class="btn btn-sm btn-warning" id="verify-otp-btn" onclick="verifyOTP()">Verify OTP</button>
+            </div>
+            </div>
+                        </div>
+
+
+    <!-- OTP Verification Section (Initially hidden) -->
+                        <div class="col-md-6 mb-2">
+
+        <div id="otp-mobile-section" style="display: none;">
+            <label for="mobile_otp" class="form-label">Enter OTP:</label>
+            <div class="otp-section">
+            <input type="text" class="form-control" id="mobile_otp" name="mobile_otp" maxlength="6" placeholder="Enter 6-digit OTP">
+            <button type="button" class="btn btn-sm btn-info" id="verify-mobile-otp-btn" onclick="verifymobileOTP()">Verify OTP</button>
+            </div>
+            </div>
+                        </div>
+
+
+
+
+</div>
+                             <div class="row">
+                                    <div class="col-md-4 mb-2">
+
+                                        <div class="form-group">
+                                           <label class="form-label" for="password">Password</label>
+                                             <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
+                                        </div>
+                                    </div>
+                                        <div class="col-md-4 mb-2">
+
+                                        <div class="form-group">
+                                           <label class="form-label" for="password2">Confirm Password</label>
+                                             <input type="password" class="form-control" name="password2" id="password2"  required>
+                                        </div>
+                                        </div>
+
+                                          <div class="col-md-4 mb-2">
+                                                <div class="form-group">
+                                                <label class="form-label" for="role">Select Role</label>
+                                                <select id="role" name="role" class="form-control"  onchange="toggleFields()" required>
+                                                    <option value="">-- Select Role --</option>
+                                                    <option value="user">User</option>
+                                                    <option value="faculty">Faculty</option>
+                                                </select>
+                                            </div>
+                                          </div>
+
+                                    </div>
+                             <div class="row">
+                                        <div class="col-md-6 mb-2" id="facultyFields" style="display: none;">
+                                              <div class="form-group">
+                                                <label class="form-label" for="institute">Institution Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="institute" name="institute" placeholder="Enter Institution Name" >
+                                            </div>
+
+                                        </div>
+                                         <div class="col-md-6 mb-2" id="userFields" style="display: none;">
+                                              <div class="form-group">
+                                                <label class="form-label" for="company">Company Name </label>
+                                                <input type="text" class="form-control" id="company" name="company" placeholder="Enter Company Name">
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-md-6 mb-2">
+                                           <div class="form-group">
+                                                <label class="form-label" for="designation">Designation </label>
+                                                <input type="text" class="form-control" id="designation" name="designation" placeholder="Enter designation" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                              <div class="row" hidden>
+                                        <div class="col-md-4 mb-2">
+                                              <div class="form-group">
+                                                <label class="form-label" for="country">Country</label>
+
+                                            <select class="form-control" id="country" name="country" >
+                                          <option value="" disabled selected>Select Country</option>
+                                                {% for row in countries %}
+                                              <option value="{{ row.id }}">{{ row.country_name }}</option>
+                                             {% endfor %}
+      <!-- Add more countries as needed -->
+                                                </select>
+
+                                            </div>
+
+                                        </div>
+                                    <div class="col-md-4 mb-2">
+                                              <div class="form-group">
+                                                <label class="form-label" for="state">State</label>
+
+                                           <select class="form-control" id="state" name="state" >
+                                          <option value="" disabled selected>Select State</option>
+                                                {% for row in states %}
+                                              <option value="{{ row.id }}">{{ row.state_name }}</option>
+                                             {% endfor %}
+      <!-- Add more states as needed -->
+                                                </select>
+
+
+                                            </div>
+
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                              <div class="form-group">
+                                                <label class="form-label" for="city">City </label>
+
+                                         <select class="form-control" id="city" name="city" >
+                                          <option value="" disabled selected>Select City</option>
+                                                {% for row in cities %}
+                                              <option value="{{ row.id }}">{{ row.city_name }}</option>
+                                             {% endfor %}
+      <!-- Add more cities as needed -->
+                                                </select>
+
+                                            </div>
+
+                                        </div>
+
+
+                                    </div>
+                              <div class="row" hidden>
+      <div class="col-md-6 mb-2">
+      <div class="form-group">
+      <label class="form-label" for="address">Address</label>
+      <input type="text" class="form-control" name="address" id="address" placeholder="Enter address">
+      </div>
+      </div>
+    <div class="col-md-6 mb-2">
+        <div class="form-group">
+           <label class="form-label" for="Pincode">Pincode</label>
+             <input type="number" class="form-control" name="pincode" id="pincode" placeholder="Enter Pincode">
+        </div>
+    </div>
+    </div>
+
+
+
+                                        <div class="form-group row mt-3">
+                                            <div class="col-12">
+                                                <div class="form-check form-switch form-switch-success">
+                                                    <input class="form-check-input" type="checkbox" id="customSwitchSuccess">
+                                                    <label class="form-check-label" for="customSwitchSuccess">By registering you agree to the  <a href="/static/services_app/terms.pdf" target="_blank" class="text-primary">Terms & Conditions</a></label>
+                                                </div>
+                                            </div><!--end col-->
+                                        </div><!--end form-group-->
+
+                                        <div class="form-group mb-0 row">
+                                            <div class="col-12">
+                                                <div class="d-grid mt-3">
+                                                    <button class="btn btn-primary" type="button" id="register_btn">Register <i class="fas fa-sign-in-alt ms-1"></i></button>
+                                                </div>
+                                            </div><!--end col-->
+                                        </div> <!--end form-group-->
+
+                                    <div class="m-3 text-center text-muted">
+                                        <p class="mb-0">Already have an account ? <a href="{% url 'services_app:index' %}" class="text-primary ms-2">Login</a></p>
+                                    </div>
+                                </div><!--end card-body-->
+                            </div><!--end card-->
+                        </div><!--end col-->
+                    </div><!--end row-->
+                </div><!--end card-body-->
+            </div><!--end col-->
+        </div><!--end row-->
+          <div id="csrf" hidden>{% csrf_token %}</div>
+    </div><!--end container-->
+    <!-- vendor js -->
+
+    <script src="{% static 'libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+
+</body>
+<script src="{% static 'js/jquery.min.js' %}"></script>
+ <script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+<script>
+   function validatePassword(password) {
+    const errors = [];
+
+    if (password.length < 8) {
+        errors.push("at least 8 characters");
+    }
+    if (!/[A-Z]/.test(password)) {
+        errors.push("one uppercase letter");
+    }
+    if (!/[a-z]/.test(password)) {
+        errors.push("one lowercase letter");
+    }
+    if (!/[0-9]/.test(password)) {
+        errors.push("one digit");
+    }
+    if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) {
+        errors.push("one special character");
+    }
+
+    return errors;
+}
+
+
+      $("#register_btn").on("click", function () {
+
+
+
+              let first_name = $("#first_name").val().trim();
+              let last_name = $("#last_name").val().trim();
+              let email = $("#email").val().trim();
+              let institute = $("#institute").val().trim();
+              let designation = $("#designation").val().trim();
+              let pincode = $("#pincode").val();
+              let mobile = $("#mobile").val().trim();
+              let address = $("#address").val().trim();
+               let country = $("#country").val();
+                let city = $("#city").val();
+                 let state = $("#state").val();
+
+               let role = $("#role").val().trim();
+            let company = $("#company").val().trim();
+            let email_status = $("#email-status").val().trim();
+            let mobile_status = $("#mobile-status").val().trim();
+            const password = $("#password").val().trim();
+            const confirmPassword = $("#password2").val().trim();
+
+
+
+
+            //Stop submission if password mismatch
+             if (password !== confirmPassword) {
+                 Swal.fire('Password Mismatch', 'Passwords do not match.', 'error');
+                 return;
+             }
+             //Password Policy Added on 23-07-25
+            const passwordErrors = validatePassword(password);
+            if (passwordErrors.length > 0) {
+                const errorList = `
+                    <div style="text-align: center; font-size: 15px;">
+                        <p style="margin-bottom: 15px; font-weight: 500;">Your password must meet the following requirements:</p>
+                        <div style="display: inline-block; text-align: left;">
+                            ${passwordErrors.map(err => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                    <span style="color: #28a745; font-size: 16px;">✔️</span>
+                                    <span style="color: #333;">${err}</span>
+                                </div>`).join('')}
+                        </div>
+                    </div>
+                `;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Weak Password',
+                    html: errorList,
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+
+              const missingFields = [];
+
+            if (!first_name) missingFields.push("First Name");
+            if (!last_name) missingFields.push("Last Name");
+            if (!email) missingFields.push("Email");
+            if (!password) missingFields.push("Password");
+            if (!role) missingFields.push("Role");
+            if (!mobile) missingFields.push("Mobile No");
+
+            if (missingFields.length > 0) {
+                showError(`The following fields are required: ${missingFields.join(", ")}`);
+                return;
+            }
+
+            // Block public domains if user is registering as faculty
+            if (role === "faculty") {
+                const publicDomains = [
+                    "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com", "icloud.com",
+                    "mail.com", "gmx.com", "protonmail.com", "zoho.com", "yandex.com", "rediffmail.com"
+                ];
+
+                const emailDomain = email.split("@")[1]?.toLowerCase();
+                const isPublic = publicDomains.includes(emailDomain);
+
+                if (isPublic) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Invalid Email',
+                        text: 'Faculty must register using an organization email (not a public email provider).',
+                    });
+                    return;
+                }
+            }
+
+            const mobileInput = document.getElementById('mobile');
+            const emailStatusInput = document.getElementById('email-status');
+            const mobileStatusInput = document.getElementById('mobile-status');
+
+            if (emailStatusInput && emailStatusInput.value === 'invalid') {
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Email Not Verified',
+                    text: 'Please verify your email before proceeding.',
+                });
+                return;
+            }
+            if (mobileInput.value.trim() !== "") {
+
+            if (mobileStatusInput && mobileStatusInput.value === 'invalid') {
+
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Contact Not Verified',
+                        text: 'Please verify your number before proceeding.',
+                    });
+                    return;
+            }
+
+            }
+            if (!$('#customSwitchSuccess').is(':checked')) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Terms Not Accepted',
+                    text: 'Please accept the Terms & Conditions to proceed.',
+                });
+                return;
+            }
+               mydata = {
+                "first_name": first_name,
+                "last_name":last_name,
+                "email":email,
+                 "mobile":mobile,
+                   "address":address,
+                   "password":password,
+                   "institute":institute,
+                   "designation":designation,
+                   "pincode":pincode,
+                   "role":role,
+                   "company":company,
+                   "country":country,
+                   "state":state,
+                   "city":city,
+                   "email_status":email_status,
+                   "mobile_status":mobile_status
+            }
+
+               $.ajax({
+                url: `/get_registration/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+                   beforeSend: function() {
+                       // Show loader before the request starts
+                       Swal.fire({
+                           title: 'Processing...',
+                           text: 'Registering User. Please wait.',
+                           onBeforeOpen: () => {
+                               Swal.showLoading();
+                           },
+                           allowOutsideClick: false, // Prevent closing the loader by clicking outside
+                           showConfirmButton: false, // Hide the confirm button
+                       });
+                   },
+                success: function (response) {
+                     Swal.close();
+                    if (response.status == 1) {
+                         Swal.fire({
+                            title: 'Success!',
+                            text: 'Registered successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                             window.location.href = '/'; // Change this to your login URL
+                        });
+                    } else {
+                         Swal.close();
+                        showError(response.error || "Failed to register!");
+                    }
+                },
+                   complete: function() {
+
+                // Close SweetAlert after the request completes (success or failure)
+
+              }
+
+            });
+          });
+ // Show Error Inside Modal
+    function showError(message) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message,
+            confirmButtonColor: "#d33"
+        });
+    }
+</script>
+
+ <script>
+        $("#resend_otp").click(function (e) {
+            e.preventDefault();  // Prevent default link behavior
+
+            let resendBtn = $("#resend_otp");
+            let messageBox = $(".messages"); // Select the message container
+
+            // Disable button and start countdown
+            disableResendButton(resendBtn);
+
+            // Make AJAX call to resend OTP
+            $.ajax({
+                url: "{% url 'common:resend_otp' %}",
+                {#url: `/otp/resend/`,#}
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: {
+                    email: $("#email").val().trim(),
+                },
+               beforeSend: function() {
+                    // Show loader before the request starts
+                    Swal.fire({
+                        title: 'Sending...',
+                        text: 'Please wait while we send a new OTP to your email.',
+                        onBeforeOpen: () => {
+                            Swal.showLoading();
+                        },
+                        allowOutsideClick: false, // Prevent closing the loader by clicking outside
+                        showConfirmButton: false, // Hide the confirm button
+                    });
+                },
+                success: function (response) {
+
+                    Swal.close();  // Close the loading spinner
+
+                    // Clear previous messages
+                    messageBox.html("");
+
+
+                    // Append success message
+                    messageBox.append(`
+                        <li class="alert alert-success">
+                            <span class="message-text">${response.msg}</span>
+                            <span class="close-btn" id="close-btn">&times;</span>
+                        </li>
+                    `);
+
+                     // Close button functionality
+                    $(".close-btn").click(function () {
+                        $(this).closest("li").remove();
+                    });
+                },
+                error: function (xhr) {
+                    Swal.close();  // Close the loading spinner
+
+                    // Clear previous messages
+                    messageBox.html("");
+
+                    let errorMsg = xhr.responseJSON?.message || "Failed to resend OTP.";
+                    messageBox.append(`
+                        <li class="alert alert-danger">
+                            <span class="message-text">${errorMsg}</span>
+                            <span class="close-btn" id="close-btn">&times;</span>
+                        </li>
+                    `);
+
+                     // Close button functionality
+                    $(".close-btn").click(function () {
+                        $(this).closest("li").remove();
+                    });
+                }
+            });
+        });
+
+        $("#resend_mobile_otp").click(function (e){
+            e.preventDefault();  // Prevent default link behavior
+
+            let resendBtn = $("#resend_mobile_otp");
+            let messageBox = $(".messages"); // Select the message container
+
+            // Disable button and start countdown
+            disableResendButton(resendBtn);
+
+            sendmobileOTP(true);
+        });
+
+
+
+        function disableResendButton(button) {
+            {#button.attr("disabled", disabled);#}
+            button.addClass("disabled");
+
+            let countdown = 60;  // 1-minute countdown
+
+            let interval = setInterval(function () {
+                button.text(`Resend OTP (${countdown}s)`);
+                countdown--;
+
+                if (countdown < 0) {
+                    clearInterval(interval);
+                    button.text("Resend OTP");
+                    button.removeClass("disabled");
+                }
+            }, 1000);
+        }
+
+</script>
+<script src="{% static 'services_app/js/register.js' %}"></script>
+<script src="{% static 'services_app/js/loader.js' %}" ></script>
+</html>

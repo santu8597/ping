@@ -1,0 +1,183 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+{% load timestamp %}
+{% block title %}Anchor Register{% endblock %}
+{% block extra_css %}<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">{% endblock %}
+
+{% block page_content %}
+<style>
+.pac-container {
+    z-index: 2000 !important;
+}
+</style>
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+
+                        <li class="breadcrumb-item"><a href="#">Anchor Management</a>
+                        </li><!--end nav-item-->
+                        <li class="breadcrumb-item active">Anchor Registration</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Anchor Registration</h4>
+            </div><!--end page-title-box-->
+        </div><!--end col-->
+    </div>
+    <!-- end page title end breadcrumb -->
+    <div class="row">
+
+
+    </div><!--end row-->
+    <div class="row">
+
+
+           <div class="col-xl-6">
+            <div class="card">
+                <div class="card-header">
+                    {% include 'services_app/feature_removed.html' %}
+          }
+          if (types.includes("administrative_area_level_1")) {
+            area_level_1 = component.long_name;
+            console.log("Admin Area Level 1:", area_level_1);
+          }
+          if (types.includes("administrative_area_level_2")) {
+            area_level_2 = component.long_name;
+            console.log("Admin Area Level 2:", area_level_2);
+          }
+          if (types.includes("country")) {
+            country = component.long_name;
+            console.log("Country:", country);
+          }
+          if (types.includes("postal_code")) {
+            postal_code = component.long_name;
+            console.log("Postal Code:", postal_code);
+          }
+          if (types.includes("sublocality_level_1")) {
+            sublocality_1 = component.long_name;
+            console.log("Sublocality Level 1:", sublocality_1);
+          }
+          if (types.includes("sublocality_level_2")) {
+            sublocality_2 = component.long_name;
+            console.log("Sublocality Level 2:", sublocality_2);
+          }
+          if (types.includes("sublocality_level_3")) {
+            sublocality_3 = component.long_name;
+            console.log("Sublocality Level 3:", sublocality_3);
+          }
+        });
+
+        console.log({
+          location_details,
+          area_level_1,
+          area_level_2,
+          country,
+          postal_code,
+          sublocality_1,
+          sublocality_2,
+          sublocality_3
+        });
+
+      } else {
+        alert("No results found.");
+      }
+    } else {
+      console.error("Geocoder failed due to: " + status);
+    }
+  });
+}
+
+
+
+$(".update_location").on("click", function () {
+    const useranchorId = $("#selected_anchor").val();
+    const aiori_anchor_id = $("#selected_anchor_id").val();
+    const location_register_status = $("#selected_location_status").val();
+    const anchor_status = $("#selected_anchor_status").val();
+
+    mydata = {
+        "user_anchor_id": useranchorId,
+        "latitude": $("#selected_lat").val(),
+        "longitude": $("#selected_lng").val(),
+        "address": $("#selected_address").val(),
+        "location": location_details,
+        "administrative_area_level_1": area_level_1,
+        "administrative_area_level_2": area_level_2,
+        "sublocality_level_1": sublocality_1,
+        "sublocality_level_2": sublocality_2,
+        "sublocality_level_3": sublocality_3,
+        "country": country,
+        "postal_code": postal_code,
+        "anchor_status": anchor_status,
+        "location_register_status":location_register_status,
+        "aiori_anchor_id":aiori_anchor_id
+    };
+   console.log("updated data..", mydata)
+    $.ajax({
+                url: `/user-anchor-update-location/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+                beforeSend: function() {
+                    Swal.fire({
+                        title: 'Processing...',
+                        text: 'Please wait.',
+                        onBeforeOpen: () => {
+                            Swal.showLoading();
+                        },
+                        allowOutsideClick: false, // Prevent closing the loader by clicking outside
+                        showConfirmButton: false, // Hide the confirm button
+                    });
+                },
+                success: function (response) {
+                    Swal.close();
+                    if (response.status == 1) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: response.msg,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            location.reload();  // Refresh the page
+                        });
+                    } else {
+                        showError(response.error || "Failed to update!");
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError("Something went wrong! Please try again.");
+                },
+                 complete: function() {
+                // Close SweetAlert after the request completes (success or failure)
+
+              }
+
+            });
+        });
+
+
+    // Show Error Inside Modal
+    function showError(message) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message,
+            confirmButtonColor: "#d33"
+        });
+    }
+
+
+
+
+
+</script>
+
+   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCuQoxZOzEbdQ2CCT3GT4cCOyNBAB5t_oQ&libraries=places" async defer></script>
+
+{% endblock %}
+

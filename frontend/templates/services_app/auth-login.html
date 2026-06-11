@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+
+
+    <meta charset="utf-8" />
+    <title>Login-Internet Measurement & Standard Development Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta content="AIORI Services Platform" name="description" />
+    <meta content="" name="author" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+     <!-- App favicon -->
+    <link rel="shortcut icon" href="{% static 'images/logo-sm.png' %}">
+
+    <!-- App css -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'css/app.min.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'css/message_alert.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'services_app/css/loader.css' %}" rel="stylesheet" type="text/css" />
+</head>
+
+<body id="body" class="auth-page"
+    style="background-image: url('/static/images/p-1.png'); background-size: cover; background-position: center center;">
+ {% include 'services_app/loader.html' %}
+    
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="alert alert-{{ message.tags }}">
+                <span class="message-text">{{ message }}</span>
+                <span class="close-btn" id="close-btn">&times;</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+    <!-- Log In page -->
+    <div class="container-md">
+        <div class="row vh-100 d-flex justify-content-center">
+            <div class="col-12 align-self-center">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-4 mx-auto">
+                            <div class="card">
+                                <div class="card-body p-0 " style="background: linear-gradient(30deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);">
+                                    <div class="text-center p-3">
+                                        <a href="{% url 'services_app:index' %}"  class="logo logo-admin">
+                                            <img src="{% static 'images/logo-sm.png' %}" height="70" alt="logo"
+                                                class="auth-logo">
+                                        </a>
+                                         <h4 class="mt-3 text-white">Welcome To <span class="text-warning">AIORI</span> </h4>
+                                    <p class="font-18 mt-3 text-white" >Internet Measurement & Standard Development Platform</p>
+                                         <p class="text-muted  mb-0">Sign in to continue to AIORI services Portal.</p>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-0">
+                                    <form class="my-4" enctype="multipart/form-data" method="post" action="{% url 'services_app:user_login' %}">
+                                                           {% csrf_token %}
+
+                                        <div class="form-group mb-2">
+                                            <label class="form-label" for="username">Username</label>
+                                            <input type="text" class="form-control" id="user" name="user"
+                                                placeholder="Enter username" required>
+                                        </div><!--end form-group-->
+
+                                        <div class="form-group position-relative">
+                                            <label class="form-label" for="userpassword">Password</label>
+                                            <input type="password" class="form-control" name="user_pass"
+                                                id="user_pass" placeholder="Enter password" required>
+                                             <i class="toggle-password fas fa-eye position-absolute" style="top: 38px; right: 15px; cursor: pointer;" toggle="#user_pass"></i>
+                                        </div><!--end form-group-->
+                                        <input id="long" name="long" hidden>
+                                         <input id="lat" name="lat" hidden>
+                                        <div class="form-group row mt-3">
+
+                                            <div class="col-sm-6 text-end">
+                                                <a href="{% url 'services_app:forgot_password'  %}" class="text-muted font-13"><i
+                                                        class="dripicons-lock"></i> Forgot password?</a>
+                                            </div><!--end col-->
+                                        </div><!--end form-group-->
+
+                                        <div class="form-group mb-0 row">
+                                            <div class="col-12">
+                                                <div class="d-grid mt-3">
+                                                    <button class="btn btn-primary" id="loginBtn" type="submit">
+                                                        Log In <i class="fas fa-sign-in-alt ms-1"></i>
+                                                    </button>
+                                                </div>
+                                            </div><!--end col-->
+                                        </div> <!--end form-group-->
+                                    </form><!--end form-->
+                                    <div class="m-3 text-center text-muted">
+                                        <p class="mb-0">Don't have an account ? <a href="{% url 'services_app:register'  %}"
+                                                class="text-primary ms-2">Register</a></p>
+                                    </div>
+
+                                </div><!--end card-body-->
+                            </div><!--end card-->
+                        </div><!--end col-->
+                    </div><!--end row-->
+                </div><!--end card-body-->
+            </div><!--end col-->
+        </div><!--end row-->
+    </div><!--end container-->
+    </body>
+    <!-- vendor js -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const long = position.coords.longitude;
+            console.log("Lat............................", lat);
+            console.log("Long............................", long);
+            $("#long").val(long);
+            $("#lat").val(lat);
+        }, function(error) {
+            console.error("Error getting location:", error);
+        });
+    } else {
+        console.log("Geolocation is not supported by this browser.");
+    }
+});
+
+
+
+
+</script>
+
+   <script>
+    document.querySelector("#loginBtn").addEventListener("click", function(event) {
+
+        let username = document.getElementById("user").value;
+        let password = document.getElementById("user_pass").value;
+
+        if (!username || !password) {
+            event.preventDefault();
+            alert("Please enter both username and password!");
+            return;
+        }
+    });
+</script>
+
+<script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'libs/feather-icons/feather.min.js' %}"></script>
+    <!-- App js -->
+    <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% static 'services_app/js/message_alert.js' %}"></script>
+<script>
+    document.querySelectorAll(".toggle-password").forEach(function (icon) {
+        icon.addEventListener("click", function () {
+            const input = document.querySelector(this.getAttribute("toggle"));
+            if (input.type === "password") {
+                input.type = "text";
+                this.classList.remove("fa-eye");
+                this.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                this.classList.remove("fa-eye-slash");
+                this.classList.add("fa-eye");
+            }
+        });
+    });
+</script>
+
+<script src="{% static 'services_app/js/loader.js' %}" ></script>
+</html>

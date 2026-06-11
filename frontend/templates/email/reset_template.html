@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reset Your Password | AIORI Portal</title>
+    <style>
+        body {
+            background-color: #f4f6f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #0066cc;
+            padding: 20px;
+            text-align: center;
+        }
+        .header img {
+            max-height: 60px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .content h2 {
+            color: #0066cc;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #0066cc;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888888;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with logo -->
+        <div class="header">
+{#            <img src="{% static 'images/AIORI_logo.png' %}" alt="AIORI Portal Logo">#}
+              <img src="https://portal.aiori.in/wp-content/uploads/2024/07/aio.png" alt="AIORI Portal Logo">
+
+        </div>
+
+        <!-- Email Content -->
+        <div class="content">
+            <h2>Hello {{ user.first_name }},</h2>
+            <p>We received a request to reset your password for your <strong>AIORI Services Portal</strong> account.</p>
+            <p>To reset your password, click the button below:</p>
+            <p>
+                <a href="{{ reset_link }}" class="btn" style="color: white;text-decoration: none">Reset My Password</a>
+            </p>
+            <p>If you didn’t request a password reset, you can safely ignore this email.</p>
+            <p>Thanks,<br>The <strong>AIORI Services </strong> Team</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © {{ now|date:"Y" }} AIORI Services Portal. All rights reserved.
+        </div>
+    </div>
+
+
+
+</body>
+
+</html>

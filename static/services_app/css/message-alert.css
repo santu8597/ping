@@ -1,0 +1,85 @@
+/ Styles for the message container /
+.messages {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+/ Each message item /
+.messages li {
+    position: relative;
+    margin: 10px 0;
+    padding: 15px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slide-in 0.5s ease-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+/ Success Message /
+.alert-success {
+    background: linear-gradient(to right, #28a745, #218838);
+    color: white;
+}
+
+/ Error/Danger Message /
+.alert-error, .alert-danger {
+    background: linear-gradient(to right, #dc3545, #c82333);
+    color: white;
+}
+
+/ Warning Message /
+.alert-warning {
+    background: linear-gradient(to right, #ffc107, #e0a800);
+    color: white;
+}
+
+/ Info Message /
+.alert-info {
+    background: linear-gradient(to right, #17a2b8, #138496);
+    color: white;
+}
+
+/ Close button /
+.close-btn {
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 15px;
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 0.3s, transform 0.3s;
+}
+
+.close-btn:hover {
+    color: white;
+    transform: scale(1.2);
+}
+
+/ Slide-in animation for messages /
+@keyframes slide-in {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/ Slide-out animation for messages /
+@keyframes slide-out {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}

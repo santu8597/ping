@@ -1,0 +1,7 @@
+{% load timestamp %}
+<div class="reply ms-4 mt-2 border-start ps-3">
+  <strong>{{ reply.user }}</strong>: {{ reply.content }}
+  <br /><small class="text-muted">{{ reply.created_date|timestamp }}</small>
+  <button class="btn btn-xs btn-outline-info vote-btn  vote-reply-btn {% if reply.user_has_voted %}btn-success btn-outline-none{% endif %}" data-id="{{ reply.id }}">👍<span id="vote-count-reply-{{ reply.id }}">{{ reply.vote_count }}</span></button>
+
+</div>

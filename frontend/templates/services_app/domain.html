@@ -1,0 +1,396 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+
+{% block title %}Domain{% endblock %}
+
+{% block extra_css %}
+
+<!-- Sweet Alert -->
+<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'libs/animate.css/animate.min.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static '/libs/simple-datatables/style.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+
+                        <li class="breadcrumb-item"><a href="#">Manage</a>
+                        </li><!--end nav-item-->
+                        <li class="breadcrumb-item active">Domains</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Domain Management</h4>
+            </div><!--end page-title-box-->
+        </div><!--end col-->
+    </div>
+    <!-- end page title end breadcrumb -->
+    <div class="row">
+
+
+    </div><!--end row-->
+    <div class="row">
+
+
+          <div class="col-lg-6" >
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Add Domain</h4>
+
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="general-label">
+
+                            <div class="mb-3 row">
+                                <label for="horizontalInput1" class="col-sm-2 col-form-label">Name</label>
+                                <div class="col-sm-10">
+                                    <input type="email" class="form-control" id="domain_name" placeholder="Name">
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row">
+                                <label for="horizontalInput2" class="col-sm-2 col-form-label">Domain/IP</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="domain_ip" placeholder="Domain/IP Address">
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-sm-10 ms-auto">
+                                    <button type="button" id="submitDomainBtn" class="btn btn-de-primary">Submit</button>
+
+                                </div>
+                            </div>
+
+                    </div>
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+
+    </div><!--end row-->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-title">Domain List</h4>
+                        </div><!--end col-->
+                        <div class="col-auto">
+                        <p class="badge badge-soft-pink font-11 p-1 mb-0">Last updated {{ time_diff }}</p>
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="border-top-0">No</th>
+                                    <th class="border-top-0">Domain Name</th>
+                                    <th class="border-top-0">IP Address</th>
+                                    <th class="border-top-0">Action</th>
+                                </tr><!--end tr-->
+                            </thead>
+                            <tbody>
+                             {% for row in domain_data %}
+                                <tr>
+                                    <td>
+                                        {{ forloop.counter }}
+                                    </td>
+                                    <td>{{ row.domain_name }}</td>
+                                    <td>{{ row.domain_ip }}</td>
+
+                                    <td>
+
+                                        <a href="javascript:void(0);" class="edit-btn" data-bs-toggle="modal" data-bs-target="#editdomain" data-id="{{ row.id }}"><i class="las la-pen text-secondary font-18"></i></a>
+                                        <a href="javascript:void(0);" class="delete-btn" data-domain="{{ row.domain_name }}"data-id="{{ row.id }}"><i class="las la-trash-alt text-secondary font-18"></i></a>
+                                    </td>
+                                </tr><!--end tr-->
+                            {% endfor %}
+                            </tbody>
+                        </table> <!--end table-->
+                    </div><!--end /div-->
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+    </div><!--end row-->
+
+</div><!-- container -->
+<div id="csrf" hidden>{% csrf_token %}</div>
+
+    <div class="modal fade" id="editdomain" tabindex="-1" role="dialog"
+                        aria-labelledby="editdomain" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header bg-success">
+                                    <h6 class="modal-title m-0 text-white" id="editdomain">Edit Domain</h6>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div><!--end modal-header-->
+                                <div class="modal-body">
+                                    <div class="row">
+                                         <div class="form-group row">
+                                        <label for="edit_domain" class="col-sm-3 col-form-label">Domain</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" id="edit_domain" class="form-control"  required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row mt-3">
+                                        <label for="edit_ip" class="col-sm-3 col-form-label">IP Address</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" id="edit_ip" class="form-control"  required>
+                                        </div>
+                                    </div><!--end row-->
+                                </div><!--end modal-body-->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-de-secondary btn-sm"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-de-success btn-sm">Save changes</button>
+                                </div><!--end modal-footer-->
+                            </div><!--end modal-content-->
+                        </div><!--end modal-dialog-->
+                    </div><!--end modal-->
+    </div>
+{% endblock %}
+
+{% block extra_javascript %}
+      <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static '/libs/simple-datatables/umd/simple-datatables.js' %}"></script>
+<script src="{% static '/js/pages/datatable.init.js' %}"></script>
+
+
+
+    <!-- Sweet-Alert  -->
+<script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+
+
+    <script>
+
+    $(document).on("click", ".edit-btn", function () {
+        const domainId = $(this).data("id");  // Retrieve domain ID from the data-id attribute
+        const domainName = $(this).closest('tr').find('td:eq(1)').text(); // Get domain name from the row
+        const domainIp = $(this).closest('tr').find('td:eq(2)').text(); // Get IP from the row
+
+        //console.log("Edit button clicked for:", domainName, "with ID:", domainId , "and IP:", domainIp);
+
+        // Set the current values in the modal inputs
+        $("#edit_domain").val(domainName);
+        $("#edit_ip").val(domainIp);
+
+        // Store the domain ID in a custom attribute or globally for use later
+        $("#editdomain").data("id", domainId);  // Store the ID in the modal for easy access
+    });
+
+    $(".btn-de-success").on("click", function () {
+        const domainId = $("#editdomain").data("id");  // Get the domain ID stored in the modal
+        const newDomain = $("#edit_domain").val().trim();
+        const newIp = $("#edit_ip").val().trim();
+
+        if (!newDomain || !newIp) {
+            showError("Both fields are required!");
+            return;
+        }
+
+        $.ajax({
+            url: `/domain/`,
+            method: "POST",
+            headers: {
+                'X-CSRFToken': document.getElementById('csrf').querySelector('input').value
+            },
+            data:{
+                "action_type": "edit_domain",
+                domain_id: domainId,
+                domain: newDomain,
+                ip: newIp
+            },
+            beforeSend: function() {
+                // Show loader before the request starts
+                Swal.fire({
+                    title: 'Processing edit domain...',
+                    text: 'Please wait.',
+                    onBeforeOpen: () => {
+                        Swal.showLoading();
+                    },
+                    allowOutsideClick: false, // Prevent closing the loader by clicking outside
+                    showConfirmButton: false, // Hide the confirm button
+                });
+            },
+            success: function (response) {
+                Swal.close();
+                if (response.status == 1) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Domain updated successfully.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload();  // Refresh the page
+                    });
+                } else {
+                    showError(response.error || "Failed to update domain!");
+                }
+            },
+            error: function () {
+                Swal.close();
+                showError("Something went wrong! Please try again.");
+            },
+             complete: function() {
+                // Close SweetAlert after the request completes (success or failure)
+
+              }
+        });
+    });
+
+
+    $(document).on("click", ".delete-btn", function () {
+        const domainId = $(this).data("id");
+        const domainName = $(this).data("domain");
+
+        //console.log("Delete button clicked for:", domainName, "with ID:", domainId);
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: `Delete domain: ${domainName}?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/domain/`,
+                    method: "POST",
+                    headers: {
+                        'X-CSRFToken': document.getElementById('csrf').querySelector('input').value
+                    },
+                    data: { 
+                        "action_type": "delete_domain",
+                        domain_id: domainId 
+                    },
+                    success: function (response) {
+                        Swal.fire("Deleted!", "Domain has been deleted.", "success").then(() => location.reload());
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Delete failed:", error);
+                        Swal.fire("Error", "Failed to delete domain.", "error");
+                    }
+                });
+            }
+        });
+    });
+
+
+    $("#submitDomainBtn").on("click", function () {
+
+            let domain = $("#domain_name").val().trim();
+            let ip = $("#domain_ip").val().trim();
+
+            if (!domain || !ip) {
+                showError("Both fields are required!");
+                return;
+            }
+
+            mydata = {
+                "action_type": "add_domain",
+                "domain": domain,
+                "ip":ip
+            }
+
+            $.ajax({
+                url: `/domain/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+                beforeSend: function() {
+                    Swal.fire({
+                        title: 'New domain addition...',
+                        text: 'Please wait.',
+                        onBeforeOpen: () => {
+                            Swal.showLoading();
+                        },
+                        allowOutsideClick: false, // Prevent closing the loader by clicking outside
+                        showConfirmButton: false, // Hide the confirm button
+                    });
+                },
+                success: function (response) {
+                    Swal.close();
+                    if (response.status == 1) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Domain added successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            location.reload();  // Refresh the page
+                        });
+                    } else {
+                        showError(response.message || "Failed to add domain!");
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError("Something went wrong! Please try again.");
+                },
+                 complete: function() {
+                // Close SweetAlert after the request completes (success or failure)
+
+              }
+
+            });
+        });
+
+    // Show Error Inside Modal
+    function showError(message) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message,
+            confirmButtonColor: "#d33"
+        });
+    }
+
+
+    </script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("domain_ip");
+
+    function cleanDomain(value) {
+        try {
+            // If value does not have protocol, add https:// for parsing
+            let url = value;
+            if (!/^https?:\/\//i.test(url)) {
+                url = "https://" + url;
+            }
+
+            // Use URL API to safely extract hostname
+            const parsed = new URL(url);
+            return parsed.hostname; // keeps only domain (e.g. www.abc.com)
+        } catch (e) {
+            return value; // fallback if not a valid URL
+        }
+    }
+
+    // On typing
+    input.addEventListener("input", function () {
+        input.value = cleanDomain(input.value);
+    });
+
+    // On paste
+    input.addEventListener("paste", function (e) {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData("text");
+        input.value = cleanDomain(text);
+    });
+});
+</script>
+    {% endblock %}

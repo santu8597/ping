@@ -1,0 +1,390 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+{% block title %}Traceroute {% endblock %}
+{% load timestamp %}
+
+{% block extra_css %}
+  <link href="{% static '/libs/simple-datatables/style.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+  <style>
+    /* Always hide these, even if zone.js toggles them */
+    #zonePromptCard,
+    #originalMapCard {
+      display: none !important;
+    }
+
+    /* Restore the Bootstrap utilities that map.js uses for button positioning */
+    .position-absolute { position: absolute !important; }
+    .top-0            { top: 0 !important; }
+    .end-0            { right: 0 !important; }
+    .m-3              { margin: 1rem !important; }
+    .zindex-tooltip   { z-index: 2010 !important; }
+  </style>
+    <link href="{% static 'services_app/css/public_report.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid">
+  <!-- Page-Title -->
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="page-title-box">
+        <div class="float-end">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Services</a></li>
+            <li class="breadcrumb-item active">Traceroute</li>
+          </ol>
+        </div>
+        <h4 class="page-title">Traceroute</h4>
+      </div>
+    </div>
+  </div>
+  <!-- end page title end breadcrumb -->
+
+  <div class="row">
+    <div class="col-md-12 col-lg-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Traceroute</h4>
+          <p class="text-muted mb-0">
+            These tools trace the paths data packets take from their source to their destinations, allowing administrators to better resolve connectivity issues.
+          </p>
+        </div>
+        <div class="card-body">
+          <!-- Nav tabs -->
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" data-bs-toggle="tab" href="#run_dns_query" role="tab" aria-selected="true">
+                Run Traceroute
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-bs-toggle="tab" href="#dns_reports" role="tab" aria-selected="false">
+                Reports
+              </a>
+            </li>
+          </ul>
+
+          <!-- Tab panes -->
+          <div class="tab-content">
+            <!-- Run Traceroute -->
+            <div class="tab-pane p-3 active" id="run_dns_query" role="tabpanel">
+              <div class="col-lg-10">
+                <div class="card">
+                  <div class="card-header">
+                    <h4 class="card-title">Run Traceroute</h4>
+                  </div>
+                  <div class="card-body">
+                    <button
+                      class="btn btn-sm btn-success"
+                      style="float: right; margin-bottom: 10px"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#domainModal"
+                    >Domain</button>
+
+                    <div class="mb-3">
+                      <label for="domain">Domain</label>
+                      <select class="form-select" id="domain">
+                        <option value="">--Select Domain--</option>
+                        {% for row in domain_data %}
+                          <option value="{{ row.id }}">{{ row.domain_name }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+
+                    <div class="row">
+                      <label class="col-md-3 my-1 control-label">Query By</label>
+                      <div class="col-md-9">
+                        <input type="radio" class="btn-check" name="queryOption" id="anchor-option" autocomplete="off" checked>
+                        <label class="btn btn-outline-success btn-sm" for="anchor-option">Anchor</label>
+
+                        <input type="radio" class="btn-check" name="queryOption" id="zone-option" autocomplete="off">
+                        <label class="btn btn-outline-danger btn-sm" for="zone-option">Zone</label>
+                      </div>
+                    </div>
+
+                    <button
+                      class="btn btn-sm btn-info"
+                      id="add_zone_btn"
+                      style="display: none; float: right; margin-bottom: 10px"
+                    >Zone</button>
+
+                    <div class="mb-3" id="anchor-dropdown">
+                      <label for="anchor">Anchor</label>
+                      <select class="form-select" id="anchor">
+                        <option value="">--SELECT ANCHOR--</option>
+                        {% for row in anchor_list %}
+                          <option value="{{ row.id }},{{ row.user }}">
+                            {{ row.anchor_details.0.anchor_name }} ({{ row.location }})
+                          </option>
+                        {% endfor %}
+                      </select>
+                    </div>
+
+                    <div class="mb-3" id="zone-dropdown" style="display: none;">
+                      <label for="zone">Zone</label>
+                      <select class="form-select" id="zone">
+                        <option value="">--SELECT ZONE--</option>
+                        {% for row in zone_list %}
+                          <option value="{{ row.id }}">{{ row.user_zone_name }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+
+                    <button class="btn btn-primary" style="float: right" id="execute_btn">
+                      Execute Command
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reports -->
+            <div class="tab-pane p-3" id="dns_reports" role="tabpanel">
+              <div class="card">
+                <div class="card-header">
+                  <h4 class="card-title">Traceroute Reports</h4>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table" id="traceroute_table">
+                      <thead class="thead-light">
+                        <tr>
+                          <th>SL No.</th>
+                          <th>Command</th>
+                          <th>Host</th>
+                          <th>Anchor</th>
+                          <th>Status</th>
+                          <th>From Date</th>
+                          <th>View Status</th>
+                          <th colspan="2">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="traceroute_table_body">
+
+                      </tbody>
+                    </table>
+                  </div>
+                     <nav>
+                      <ul class="pagination" id="pagination">
+                      </ul>
+                    </nav>
+                </div>
+              </div>
+            </div>
+          </div><!-- tab-content -->
+        </div><!-- card-body -->
+      </div><!-- card -->
+    </div><!-- col -->
+  </div><!-- row -->
+
+  <div id="csrf" hidden>{% csrf_token %}</div>
+</div><!-- container -->
+
+<!-- Add Domain Modal -->
+<div class="modal fade" id="domainModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalDefaultLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title m-0" id="exampleModalDefaultLabel">Add Domain</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group row">
+          <label for="new_domain" class="col-sm-3 col-form-label">Name</label>
+          <div class="col-sm-9">
+            <input type="text" id="new_domain" class="form-control" placeholder="Name" required>
+          </div>
+        </div>
+        <div class="form-group row mt-3">
+          <label for="new_ip" class="col-sm-3 col-form-label">Domain/IP</label>
+          <div class="col-sm-9">
+            <input type="text" id="new_ip" class="form-control" placeholder="Domain/IP Address" required>
+          </div>
+        </div>
+          <div class="form-group row mt-3" hidden>
+          <label for="page_state" class="col-sm-3 col-form-label">Page State</label>
+          <div class="col-sm-9">
+            <input type="text" id="page_state" class="form-control" value="traceroute">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-de-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-de-primary btn-sm" id="submitDomainModalBtn">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ▶▶▶ ZONE INTEGRATION ▶▶▶ -->
+<!-- Prompt card (always hidden) -->
+<div class="row">
+  <div class="col-12">
+    <div class="card" id="zonePromptCard">
+      <div class="card-body text-center">
+        <h4 class="card-title">Zone Management</h4>
+        <p class="card-text">Click below to start creating a new zone by selecting anchors on the map</p>
+        <button id="createZoneBtn" class="btn btn-primary">Add Zone</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Inline map container (always hidden) -->
+<div class="row mt-4" id="originalMapCard">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><h4 class="card-title">Select Anchor to create Zone</h4></div>
+      <div class="card-body">
+        <div id="map" class="gmaps" style="width:100%; height:400px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    <input id="api_header" value="{{ api_prefix_viz }}" hidden>
+<!--  END ZONE INTEGRATION  -->
+{% endblock %}
+
+{% block extra_javascript %}
+
+     <script>
+  function initMap() {
+    // Only a trigger — actual logic is in map.js
+    initMapFromScript();
+  }
+</script>
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static '/libs/simple-datatables/umd/simple-datatables.js' %}"></script>
+  <script src="{% static '/js/pages/datatable.init.js' %}"></script>
+    <script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+  <script src="{% static 'services_app/js/domain.js' %}"></script>
+
+  <!--  ZONE INTEGRATION  -->
+  <!-- Load Google Maps API then shared map.js -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCuQoxZOzEbdQ2CCT3GT4cCOyNBAB5t_oQ&callback=initMap"
+    async defer>
+  </script>
+  <script src="{% static 'services_app/js/zone.js' %}"></script>
+<script src="{% static 'services_app/js/traceroute_command.js' %}"></script>
+    <script src="{% static 'services_app/js/public_report.js' %}"></script>
+  <script>
+    // Bind the Traceroute “Zone” button
+    document.getElementById('add_zone_btn').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.openZoneModal();
+    });
+  </script>
+  <!--  END ZONE INTEGRATION  -->
+
+  <script>
+  //console.log("traceroute_command.js debug — URL params:", window.location.search);
+  document.addEventListener("DOMContentLoaded", () => {
+    const params       = new URLSearchParams(window.location.search);
+    const incomingName = params.get("anchor_name");
+    //console.log("traceroute_command — incomingName =", incomingName);
+
+    const sel = document.getElementById("anchor");
+    //console.log("traceroute_command — select#anchor:", sel);
+    if (!sel || !incomingName) return;
+
+    for (let o of sel.options) {
+      //console.log(`   • option value="${o.value}" text="${o.textContent.trim()}"`);
+      if (o.textContent.trim().includes(incomingName)) {
+        //console.log("✅ traceroute_command — selecting option:", o.value);
+        sel.value = o.value;
+        break;
+      }
+    }
+  });
+</script>
+<script>
+let currentPage = 1;
+const pageSize = 15;
+const token = "{{ token|escapejs }}"; // backend should provide this
+
+function loadTable(page) {
+    currentPage = page;
+    $.ajax({
+        url: `/api/anchor/command-history/?page=${page}&page_size=${pageSize}&query=traceroute`, // <--- endpoint
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        success: function(res) {
+            const tbody = $("#traceroute_table_body");
+            tbody.empty();
+
+            if (res.history.length === 0) {
+                tbody.append('<tr><td colspan="8">No records found.</td></tr>');
+                return;
+            }
+
+            res.history.forEach((row, idx) => {
+                tbody.append(`
+                    <tr>
+                        <td>${(currentPage - 1) * pageSize + idx + 1}</td>
+                        <td>${row.query}</td>
+                        <td><b>${row.hosts}</b></td>
+                        <td><b>${row.anchor_names} (${row.region})</b></td>
+                        <td>${row.query_status}</td>
+                        <td>${row.query_execution_end_date}</td>
+                        <td>${row.has_been_seen}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" style="font-style: italic" onclick="location.href='/traceroute_visualizer?id=${row.id}'">
+                                Show Results
+                            </button>
+                        </td>
+                        <td>
+                            <label class="switch" data-bs-toggle="tooltip" title="If made public, this measurement will be visible to the community.">
+                                <input type="checkbox" class="togglePublic" data-id="${row.id}" ${row.is_public ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            // Re-initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            buildPagination(res.pagination);
+        }
+    });
+}
+
+function buildPagination(pagination) {
+    const ul = $("#pagination");
+    ul.empty();
+
+    const totalPages = Math.ceil(pagination.count / pagination.page_size);
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+
+    if (currentPage > 1) {
+        ul.append(`<li class="page-item"><a class="page-link" href="#" onclick="loadTable(${currentPage - 1})">Previous</a></li>`);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        ul.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="loadTable(${i})">${i}</a>
+        </li>`);
+    }
+
+    if (currentPage < totalPages) {
+        ul.append(`<li class="page-item"><a class="page-link" href="#" onclick="loadTable(${currentPage + 1})">Next</a></li>`);
+    }
+}
+
+// Initial load
+loadTable(1);
+</script>
+{% endblock %}

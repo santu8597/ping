@@ -1,0 +1,104 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+{% load timestamp %}
+{% block title %}Reports{% endblock %}
+
+{% block extra_css %}
+
+<!-- Sweet Alert -->
+<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'libs/animate.css/animate.min.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static '/libs/simple-datatables/style.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block page_content %}
+
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+
+                        <li class="breadcrumb-item"><a href="#">Manage</a>
+                        </li><!--end nav-item-->
+                        <li class="breadcrumb-item active">Manage Anchors</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Anchor Management By Admin</h4>
+            </div><!--end page-title-box-->
+        </div><!--end col-->
+    </div>
+    <!-- end page title end breadcrumb -->
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-title">Anchor List</h4>
+                        </div><!--end col-->
+
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="border-top-0">No</th>
+                                    <th class="border-top-0">Anchor Name</th>
+                                    <th class="border-top-0">Owner User</th>
+                                    <th class="border-top-0">Lease Location</th>
+                                    <th class="border-top-0">Anchor Status</th>
+                                    <th class="border-top-0">Online</th>
+                                    <th class="border-top-0">Active</th>
+                                     <th class="border-top-0">Date</th>
+                                    <th class="border-top-0">Action</th>
+                                </tr><!--end tr-->
+                            </thead>
+                            <tbody>
+                             {% for row in anchor_list %}
+                                <tr>
+                                    <td>
+                                        {{ forloop.counter }}
+                                    </td>
+                                     <td>{{ row.anchor_name}}</td>
+                                     <td>{{ row.username }}</td>
+                                     <td>{{ row.location }}</td>
+                                    <td>{{ row.anchor_status }}</td>
+
+                                    <td>{{ row.is_online }}</td>
+                                    <td>{{ row.is_active}}</td>
+                                    <td>{{ row.anchor_created_date|timestamp}}</td>
+
+                                    <td>
+
+                                    </td>
+                                </tr><!--end tr-->
+                            {% endfor %}
+                            </tbody>
+                        </table> <!--end table-->
+                    </div><!--end /div-->
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+    </div><!--end row-->
+
+</div><!-- container -->
+<div id="csrf" hidden>{% csrf_token %}</div>
+
+{% endblock %}
+
+{% block extra_javascript %}
+ <script src="{% static 'js/jquery.min.js' %}"></script>
+ <script src="{% static '/libs/simple-datatables/umd/simple-datatables.js' %}"></script>
+ <script src="{% static '/js/pages/datatable.init.js' %}"></script>
+    <!-- Sweet-Alert  -->
+<script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+
+
+    {% endblock %}

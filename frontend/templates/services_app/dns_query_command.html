@@ -1,0 +1,331 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+
+{% block title %}DNS Query {% endblock %}
+{% load timestamp %}
+{% block page_content %}
+{% block extra_css %}
+
+<link href="{% static '/libs/simple-datatables/style.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'services_app/css/public_report.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <li class="alert alert-{{ message.tags }}">
+    <span class="message-text">{{ message }}</span>
+    <span class="close-btn" id="close-btn">&times;</span>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Services</a></li>
+                        <li class="breadcrumb-item active">DNS Query</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">DNS Query</h4>
+            </div>
+            <!--end page-title-box-->
+        </div>
+        <!--end col-->
+    </div>
+    <!-- end page title end breadcrumb -->
+    <div class="row">
+        <div class="col-md-12 col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">DNS Query</h4>
+                    <p class="text-muted mb-0">A DNS request is sent, to ask for the IP address associated with a domain name. An attempt to reach a domain, is actually a DNS client querying the DNS servers to get the IP address, related to that domain. </p>
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#run_dns_query" role="tab"
+                                aria-selected="true">Run Query</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#dns_reports" role="tab"
+                                aria-selected="false">Reports</a>
+                        </li>
+
+                    </ul>
+
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                        <div class="tab-pane p-3 active" id="run_dns_query" role="tabpanel">
+                             <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Run DNS Query</h4>
+                </div><!--end card-header-->
+                <div class="card-body">
+                <button class="btn btn-sm btn-success" style="float:right;" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#domainModal">Domain</button>
+                <br>
+
+                         <div class="mb-3">
+                            <label for="exampleFormControlSelect1">Domain</label>
+                            <select class="form-select" id="domain">
+                                <option >--Select Domain--</option>
+                                {% for row in domain_data %}
+                            <option value="{{ row.domain_ip }}">{{ row.domain_name }}</option>
+                                {% endfor %}
+
+                            </select>
+                        </div>
+                         <div class="mb-3">
+                            <label for="exampleFormControlSelect1">Query Type</label>
+                            <select class="form-select" id="query_type">
+                           <option >--Select Query--</option>
+                          <option value="A">A</option>
+                                <option value="AAAA">AAAA</option>
+                                <option value="CNAME">CNAME</option>
+                                 <option value="MX">MX</option>
+                                 <option value="NS">NS</option>
+                                 <option value="DNSKEY">DNSKEY</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="exampleFormControlSelect1">Anchor</label>
+                            <select class="form-select" id="anchor">
+                           <option value="">--SELECT ANCHOR--</option>
+                             {% for row in anchor_list %}
+                          <option value="{{ row.id }},{{ row.user }}">{{ row.anchor_details.0.anchor_name}} ({{ row.location }})</option>
+                           {% endfor %}
+
+                            </select>
+                        </div>
+
+
+                        <button class="btn btn-primary" style="float: right" id="dns_query_execute_btn" >Execute Command</button>
+
+
+
+                </div><!--end card-body-->
+            </div><!--end card-->
+
+        </div> <!-- end col -->
+
+                        </div>
+                        <div class="tab-pane p-3" id="dns_reports" role="tabpanel">
+  <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">DNS Query Reports </h4>
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive">
+                     <table class="table" id="dns_table">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>SL No.</th>
+                                    <th>Command</th>
+                                    <th>Domain</th>
+                                    <th>Anchor</th>
+                                    <th>Query Type</th>
+                                    <th>Created Date</th>
+                                    <th colspan="2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dns_table_body">
+                                <!-- rows will be loaded via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <nav>
+                      <ul class="pagination" id="pagination">
+                      </ul>
+                    </nav>
+                </div>
+            </div>
+
+  </div>
+
+
+                        </div>
+
+                    </div>
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+
+
+    </div><!--end row-->
+
+<div id="csrf" hidden>{% csrf_token %}</div>
+</div><!-- container -->
+
+    <!--Add Domain Modal-->
+
+          <div class="modal fade" id="domainModal" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalDefaultLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h6 class="modal-title m-0" id="exampleModalDefaultLabel">Add Domain</h6>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div><!--end modal-header-->
+                                <div class="modal-body">
+                                     <div class="form-group row">
+                                        <label for="new_domain" class="col-sm-3 col-form-label">Name</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" id="new_domain" class="form-control" placeholder="Name" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row mt-3">
+                                        <label for="new_ip" class="col-sm-3 col-form-label">Domain/IP</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" id="new_ip" class="form-control" placeholder="Domain/IP Address" required>
+                                        </div>
+                                         </div>
+                                     <div class="form-group row mt-3" hidden>
+                                        <label for="page_state" class="col-sm-3 col-form-label">Page State</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" id="page_state" class="form-control" value="dns_query">
+                                        </div>
+                                         </div>
+                                </div><!--end modal-body-->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-de-secondary btn-sm"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-de-primary btn-sm" id="submitDomainModalBtn">Submit</button>
+                                </div><!--end modal-footer-->
+                            </div><!--end modal-content-->
+                        </div><!--end modal-dialog-->
+                    </div><!--end modal-->
+
+
+{% endblock %}
+
+
+{% block extra_javascript %}
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static '/libs/simple-datatables/umd/simple-datatables.js' %}"></script>
+<script src="{% static '/js/pages/datatable.init.js' %}"></script>
+<script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+<script src="{% static 'services_app/js/domain.js' %}"></script>
+<script src="{% static 'services_app/js/dns_command.js' %}"></script>
+<script src="{% static 'services_app/js/public_report.js' %}"></script>
+
+    <script>
+  //console.log("dns_command.js debug — URL params:", window.location.search);
+  document.addEventListener("DOMContentLoaded", () => {
+    const params       = new URLSearchParams(window.location.search);
+    const incomingName = params.get("anchor_name");
+  //  console.log("dns_query_command — incomingName =", incomingName);
+
+    const sel = document.getElementById("anchor");
+    //console.log(" dns_query_command — select#anchor:", sel);
+    if (!sel || !incomingName) return;
+
+    for (let o of sel.options) {
+     // console.log(`   • option value="${o.value}" text="${o.textContent.trim()}"`);
+      if (o.textContent.trim().includes(incomingName)) {
+       // console.log(" dns_query_command — selecting option:", o.value);
+        sel.value = o.value;
+        break;
+      }
+    }
+  });
+</script>
+
+<script>
+let currentPage = 1;
+const pageSize = 15;
+const token = "{{ token|escapejs }}"; // backend should provide this
+
+function loadTable(page) {
+    currentPage = page;
+    $.ajax({
+        url: `/api/anchor/command-history/?page=${page}&page_size=${pageSize}&query=dnsquery`, // <--- endpoint
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        success: function(res) {
+            const tbody = $("#dns_table_body");
+            tbody.empty();
+
+            if (res.history.length === 0) {
+                tbody.append('<tr><td colspan="8">No records found.</td></tr>');
+                return;
+            }
+
+            res.history.forEach((row, idx) => {
+                tbody.append(`
+                    <tr>
+                        <td>${(currentPage - 1) * pageSize + idx + 1}</td>
+                        <td>${row.query}</td>
+                        <td><b>${row.hosts}</b></td>
+                        <td><b>${row.anchor_names} (${row.region})</b></td>
+                        <td>${row.dnsquery_type}</td>
+                        <td>${row.created_date}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" style="font-style: italic" onclick="location.href='/dnsquery_visualizer?res_id=${row.id}'">
+                                Show Results
+                            </button>
+                        </td>
+                        <td>
+                            <label class="switch" data-bs-toggle="tooltip" title="If made public, this measurement will be visible to the community.">
+                                <input type="checkbox" class="togglePublic" data-id="${row.id}" ${row.is_public ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            // Re-initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            buildPagination(res.pagination);
+        }
+    });
+}
+
+function buildPagination(pagination) {
+    const ul = $("#pagination");
+    ul.empty();
+
+    const totalPages = Math.ceil(pagination.count / pagination.page_size);
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+
+    if (currentPage > 1) {
+        ul.append(`<li class="page-item"><a class="page-link" href="#" onclick="loadTable(${currentPage - 1})">Previous</a></li>`);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        ul.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="loadTable(${i})">${i}</a>
+        </li>`);
+    }
+
+    if (currentPage < totalPages) {
+        ul.append(`<li class="page-item"><a class="page-link" href="#" onclick="loadTable(${currentPage + 1})">Next</a></li>`);
+    }
+}
+
+// Initial load
+loadTable(1);
+</script>
+
+
+{% endblock %}

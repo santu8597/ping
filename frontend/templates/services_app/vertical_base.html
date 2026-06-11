@@ -1,0 +1,51 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <title>
+      {% block title %}{% endblock title %} - v2_services.aior.in
+    </title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      content="AIORI- Services Platform"
+      name="description"
+    />
+    <meta content="" name="author" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- App favicon -->
+   <link href="{% static 'services_app/css/loader.css' %}" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" href="{% static 'images/logo-sm.png' %}" />
+
+    {% block extra_css %}   {% endblock %} {% include "services_app/partials/head-css.html" %}
+  </head>
+
+  <body id="body" class="enlarge-menu" {% block body_extra %} {% endblock %}>
+    {% include "services_app/partials/left-sidebar-tab.html" %} 
+    {% include "services_app/partials/topbar.html" %}
+ {% include 'services_app/loader.html' %}
+    <div class="page-wrapper">
+      <div class="page-content-tab">
+        {% block page_content %}{% endblock %} 
+        
+        {% include "services_app/partials/right-sidebar.html" %} 
+        {% include "services_app/partials/footer.html" %}
+
+      </div>
+    </div>
+
+    {% block extra_content %} {% endblock %}
+
+    {% block javascript %} 
+    {% include "services_app/partials/vendorjs.html" %} 
+    {% block extra_javascript %}{% endblock %}
+
+    <script src="{% static 'js/app.js' %}"></script>
+  <script src="{% static 'services_app/js/loader.js' %}" ></script>
+    {% endblock javascript %}
+  </body>
+</html>

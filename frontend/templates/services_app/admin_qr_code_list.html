@@ -1,0 +1,211 @@
+{% extends 'services_app/vertical_base.html' %}
+{% load static %}
+
+{% block title %}QR Code Gallery{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <h4 class="page-title">QR Code Gallery</h4>
+            </div>
+        </div>
+    </div>
+    <form id="qrFilterForm" class="row g-2 mb-4">
+        <div class="col-auto">
+            <input type="text" class="form-control" name="date-range" id="date-range" placeholder="Select date range"
+                autocomplete="off" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+    <div id="filterErrorMessage" class="alert alert-danger text-center fw-semibold" style="display:none;">Please select
+        a date range before filtering.</div>
+    <div class="row" id="qrContainer"></div>
+    <nav aria-label="QR pagination">
+        <ul class="pagination justify-content-center" id="qrPagination"></ul>
+    </nav>
+    <div id="noResultsMessage" class="alert alert-warning text-center fw-semibold" style="display:none;">
+        No QR codes found for the selected date.
+    </div>
+</div>
+
+<!-- Modal for QR Preview -->
+<div class="modal fade" id="qrPreviewModal" tabindex="-1" aria-labelledby="qrPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalImg" src="" alt="" class="img-fluid mb-3" style="max-height: 400px;" />
+                <p id="qrName" class="text-muted"></p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a id="downloadBtn" class="btn btn-success" download>Download</a>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    {% block extra_javascript %}
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script>
+        let allQRCodes = [];
+        let currentPage = 1;
+        const pageSize = 10;
+
+        function renderQRCodes(qr_files, page = 1) {
+            allQRCodes = qr_files || [];
+            currentPage = page;
+            const container = $("#qrContainer");
+            container.empty();
+            if (!qr_files || qr_files.length === 0) {
+                $("#noResultsMessage").show();
+                $("#qrPagination").hide();
+                return;
+            }
+            $("#noResultsMessage").hide();
+            $("#qrPagination").show();
+            // Pagination logic
+            const totalPages = Math.ceil(qr_files.length / pageSize);
+            const startIdx = (page - 1) * pageSize;
+            const endIdx = startIdx + pageSize;
+            const pageQRCodes = qr_files.slice(startIdx, endIdx);
+            pageQRCodes.forEach(qr => {
+                container.append(`
+                    <div class="col-md-3 qr-card mb-3">
+                        <div class="card shadow-sm">
+                            <img src="${qr.url}" alt="${qr.name}" class="card-img-top" style="height:200px;object-fit:contain;cursor:pointer;" onclick="openPreview('${qr.url}', '${qr.name}')" />
+                            <div class="card-body">
+                                <small class="text-muted">${qr.date}</small><br />
+                                <strong class="d-block text-truncate">${qr.name}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+            renderPagination(totalPages, page);
+        }
+
+        function renderPagination(totalPages, currentPage) {
+            const pagination = $("#qrPagination");
+            pagination.empty();
+            if (totalPages <= 1) {
+                pagination.hide();
+                return;
+            }
+            pagination.show();
+            let html = '';
+            html += `<li class="page-item${currentPage === 1 ? ' disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item${i === currentPage ? ' active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            }
+            html += `<li class="page-item${currentPage === totalPages ? ' disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">Next</a></li>`;
+            pagination.html(html);
+        }
+
+
+        function fetchQRCodes(params = {}, page = 1) {
+            $.get("{% url 'services_app:qr_code_list_view' %}", params, function (data) {
+                renderQRCodes(data.qr_files, page);
+            });
+        }
+
+        function openPreview(url, name) {
+            $("#modalImg").attr("src", url);
+            $("#qrName").text(name);
+            // $("#downloadBtn").attr("href", url).attr("download", name);
+            $("#downloadBtn").off("click").on("click", function () {
+                // Use fetch to download and create a blob
+                fetch(url, {
+                    mode: 'cors' // Optional, depending on your bucket CORS settings
+                })
+                    .then(resp => resp.blob())
+                    .then(blob => {
+                        const blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = blobUrl;
+                        a.download = name;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(blobUrl);
+                    })
+                    .catch(err => {
+                        alert("Failed to download QR image.");
+                        console.error(err);
+                    });
+            });
+            const modal = new bootstrap.Modal(document.getElementById("qrPreviewModal"));
+            modal.show();
+        }
+        $(document).ready(function () {
+            // Set today's date as default
+            const today = moment().format('YYYY-MM-DD');
+            $('#date-range').val(today + ' - ' + today);
+
+            // Initialize date range picker (requires daterangepicker library)
+            if (typeof $.fn.daterangepicker !== 'undefined') {
+                $('#date-range').daterangepicker({
+                    opens: 'left',
+                    autoUpdateInput: false,
+                    showDropdowns: true,
+                    alwaysShowCalendars: true,
+                    startDate: today,
+                    endDate: today,
+                    locale: {
+                        format: 'YYYY-MM-DD',
+                        cancelLabel: 'Clear',
+                        applyLabel: 'Apply',
+                        daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                        monthNames: moment.months(),
+                        firstDay: 1
+                    }
+                });
+
+                $('#date-range').on('apply.daterangepicker', function (ev, picker) {
+                    $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+                });
+                $('#date-range').on('cancel.daterangepicker', function (ev, picker) {
+                    $(this).val('');
+                });
+            }
+
+            // Fetch QR Codes for today on page load
+            fetchQRCodes({ start_date: today, end_date: today });
+
+            // On form submit
+            $("#qrFilterForm").on("submit", function (e) {
+                e.preventDefault();
+                const range = $('#date-range').val();
+                let params = {};
+                if (!range || !range.includes(' - ')) {
+                    $('#filterErrorMessage').show();
+                    return false;
+                }
+                $('#filterErrorMessage').hide();
+                const [start_date, end_date] = range.split(' - ');
+                params.start_date = start_date.trim();
+                params.end_date = end_date.trim();
+                fetchQRCodes(params, 1);
+            });
+
+            // Pagination click
+            $(document).on('click', '#qrPagination .page-link', function (e) {
+                e.preventDefault();
+                const page = parseInt($(this).data('page'));
+                if (!isNaN(page) && page > 0 && page <= Math.ceil(allQRCodes.length / pageSize)) {
+                    renderQRCodes(allQRCodes, page);
+                }
+            });
+        });
+
+    </script>
+    {% endblock %}

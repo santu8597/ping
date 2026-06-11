@@ -1,0 +1,441 @@
+{% extends 'services_app/vertical_base_report.html' %}
+
+{% load static %}
+
+{% block title %}Traceroute Reports{% endblock %}
+
+{% block page_content %}
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCuQoxZOzEbdQ2CCT3GT4cCOyNBAB5t_oQ&callback=initMap&libraries=&v=weekly"
+        defer> </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
+    {% block extra_css %}
+
+<link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+    <style>
+    #gmaps-basic {
+        height: 400px;
+        width: 100%;
+    }
+    .page-wrapper,
+.page-content-tab {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    width: 100% !important
+}
+    </style>
+
+{% endblock %}
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+
+                        <li class="breadcrumb-item"><a href="{% url 'services_app:traceroute_command_page' %}">Traceroute</a>
+                        </li><!--end nav-item-->
+                        <li class="breadcrumb-item active">Reports</li>
+                    </ol>
+                </div>
+                <h4 class="page-title d-flex align-items-center">
+                    <a href="{% url 'services_app:traceroute_command_page' %}">
+                        <img src="{% static 'images/AIORI_logo.png' %}" alt="AIORI Logo" style="height: 30px; margin-right: 10px;">
+                    </a>
+                    Traceroute Reports
+                </h4>
+
+            </div><!--end page-title-box-->
+
+
+
+             <div class="btn-group" style="float:right;padding-bottom: 8px;margin-left: 8px">
+                                    <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                      Export Result
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                      <li><a class="dropdown-item"  href="{% url 'services_app:export_csv_traceroute' %}?id={{ history_id }}" id="exportCSV">Export as CSV</a></li>
+                                      <li><a class="dropdown-item" href="{% url 'services_app:export_pdf_traceroute' %}?id={{ history_id }}" target="_blank" id="exportPDF">Export as PDF</a></li>
+                                        <li><a class="dropdown-item" onclick="downloadJSON()" id="exportJson" >Export as JSON</a></li>
+
+                                    </ul>
+                    </div>
+
+          {% if is_editable %}
+ <button type="button" style="float:right;margin-left: 8px;" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#publicModal">
+    Query Visibility
+  </button>
+
+            {% if user_data.is_student  %}
+                  <button type="button" style="float:right;" class="btn btn-sm btn-warning me-4" data-bs-toggle="modal" data-bs-target="#assignmentModal">
+    Link Assignment
+  </button>
+                            {% endif %}
+        {% endif %}
+
+        </div><!--end col-->
+    </div>
+    <!-- end page title end breadcrumb -->
+    <div class="row">
+          <div class="card">
+                <div class="card-header">
+
+                    <div class="d-flex align-items-center">
+                        {% if is_editable %}
+                        <a href="{% url 'services_app:traceroute_command_page' %}?tab=dns_reports" class="back_btn me-2" style="font-size: 1.2rem; color: #333;">
+                            <i class="mdi mdi-arrow-left-bold-circle"></i>
+                        </a>
+                        {% endif %}
+                        <h4 class="card-title mb-0">Trace Route for <span style="text-transform: lowercase">{{ traceroute_data.0.host_name }}</span></h4>
+                    </div>
+
+                </div><!--end card-header-->
+                <div class="card-body">
+                   <div id="gmaps-basic" class="gmaps"></div>
+                </div><!--end card-body-->
+            </div><!--end card-->
+
+    </div><!--end row-->
+
+    <div class="row">
+    {% for tr in traceroute_data %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-title">Trace Route For <span style="text-transform: lowercase;color: blue">{{ tr.host_name }}</span> {{ tr.anchor }}:-({{ tr.location }})</h4>
+                        </div><!--end col-->
+
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="border-top-0">No</th>
+                                    <th class="border-top-0">Distance</th>
+                                    <th class="border-top-0">Node</th>
+                                    <th class="border-top-0">Rtt Max</th>
+                                     <th class="border-top-0">Rtt Avg</th>
+                                     <th class="border-top-0">Rtt Min</th>
+                                    <th class="border-top-0">Latitude</th>
+                                    <th class="border-top-0">Longitude</th>
+                                    <th class="border-top-0">Location</th>
+                                </tr><!--end tr-->
+                            </thead>
+                            <tbody>
+                           {% for row in tr.traceroute_data %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ row.distance }}</td>
+                                    <td>{{ row.node }}</td>
+                                    <td>{{ row.max_rtt }}</td>
+                                    <td>{{ row.avg_rtt }}</td>
+                                    <td>{{ row.min_rtt }}</td>
+                                    <td>{{ row.latitude }}</td>
+                                    <td>{{ row.longitude }}</td>
+                                    <td>{{ row.location }}</td>
+
+                                </tr><!--end tr-->
+                                    {% endfor %}
+                            </tbody>
+                        </table> <!--end table-->
+                    </div><!--end /div-->
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div><!--end col-->
+    {% endfor %}
+    </div><!--end row-->
+
+</div><!-- container -->
+<!-- Assignment Modal -->
+<div class="modal fade" id="assignmentModal" tabindex="-1" aria-labelledby="assignmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="assignmentModalLabel">Select Assignment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="assignment" class="form-label">Choose Assignment</label>
+            <select class="form-select" id="assignment" name="assignment">
+              <option value="">-- Select Assignment --</option>
+                {% for row in assignment_list %}
+              <option value="{{ row.id }}">{{ row.assignment_name }}</option>
+                {% endfor %}
+            </select>
+          </div>
+
+         <div class="row">
+  <div class="col-md-6 mb-3">
+    <label for="commandName" class="form-label">Command</label>
+    <input type="text" class="form-control" id="commandName" name="commandName" value="traceroute" disabled>
+  </div>
+
+  <div class="col-md-6 mb-3">
+    <label for="query_id" class="form-label">Query ID</label>
+    <input type="text" class="form-control" id="query_id" name="query_id" value="{{ history_id }}" disabled>
+  </div>
+</div>
+
+ <div class="mb-3">
+            <label for="assignment_remarks" class="form-label">Remarks</label>
+            <input type="text" class="form-control" id="assignment_remarks" name="assignment_remarks" placeholder="Enter remarks" >
+          </div>
+
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button" id="link_btn" class="btn btn-warning">Link</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- Public Modal -->
+<div class="modal fade" id="publicModal" tabindex="-1" aria-labelledby="publicModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="publicModalLabel">Measurement Visibility</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+          <p><i>If made public, this measurement will be visible in the AIORI Public Measurements section, accessible to the entire community.</i></p>
+
+
+
+         <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="manage_public_private" class="form-label">Manage Query </label>
+            <select class="form-select" id="manage_public_private" name="manage_public_private" >
+              <option>-- Select--</option>
+              <option value="true">Public</option>
+              <option value="false">Private</option>
+            </select>
+          </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="manage_query_id" class="form-label">Query ID</label>
+                <input type="text" class="form-control" id="manage_query_id" name="manage_query_id" value="{{ history_id }}" disabled>
+              </div>
+              </div>
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button" id="submit_manage_query_btn" class="btn btn-success">Submit</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    <div id="csrf" hidden>{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_javascript %}
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+ <script src="{% static 'services_app/js/public_report.js' %}"></script>
+  <script>
+  function generateDistinctColors(n) {
+    const colors = [];
+    for (let i = 0; i < n; i++) {
+        const hue = Math.round((i * 360) / n); // evenly spaced hue
+        colors.push(`hsl(${hue}, 80%, 50%)`); // full saturation, medium lightness
+    }
+    return colors;
+}
+
+
+function initMap() {
+    const center = { lat: 20.5937, lng: 78.9629 }; // India center
+    const map = new google.maps.Map(document.getElementById("gmaps-basic"), {
+        zoom: 4,
+        center: center,
+    });
+
+    const traceroute_data = {{ traceroute_data|safe }};
+
+    const anchorCount = traceroute_data.length;
+    const colors = generateDistinctColors(anchorCount);
+    //console.log(colors);
+    let colorIndex = 0;
+
+    traceroute_data.forEach(anchor => {
+        const color = colors[colorIndex % colors.length];
+        colorIndex++;
+
+        const mapData = anchor.map_data.map(point => ({
+            lat: parseFloat(point.latitude),
+            lng: parseFloat(point.longitude),
+            ip: point.ip,
+            location: point.location,
+            distance: point.distance
+        }));
+
+        const groupedData = {};
+        mapData.forEach(point => {
+            const key = point.lat + ',' + point.lng;
+            if (!groupedData[key]) {
+                groupedData[key] = {
+                    lat: point.lat,
+                    lng: point.lng,
+                    locations: []
+                };
+            }
+            groupedData[key].locations.push({
+                ip: point.ip,
+                location: point.location,
+                distance: point.distance
+            });
+        });
+
+        const pathCoords = [];
+
+        for (const key in groupedData) {
+            const group = groupedData[key];
+            const position = { lat: group.lat, lng: group.lng };
+            pathCoords.push(position);
+
+            const marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                label: {
+                    text: `${group.locations[0].distance}`,
+                    color: "#ffffff",
+                    fontSize: "16px",  
+                    fontWeight: "bold"
+                },
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+            scale: 12,
+            fillColor: color,
+            fillOpacity: 1,
+            strokeWeight: 1,
+            strokeColor: "#fff"
+
+                }
+            });
+
+            const infoContent = `
+                 <strong>Anchor: ${ anchor.anchor }</strong>
+                <strong>Location: ${group.locations[0].location}</strong>
+
+                ${group.locations.map(loc => `<b>IP:</b> ${loc.ip}
+`).join('')}
+            `;
+            const infowindow = new google.maps.InfoWindow({ content: infoContent });
+            marker.addListener("click", () => infowindow.open(map, marker));
+        }
+
+        const tracePath = new google.maps.Polyline({
+            path: pathCoords,
+            geodesic: true,
+            strokeColor: color,
+            strokeOpacity: 1.0,
+            strokeWeight: 3, // slightly thicker line
+            icons: [{
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: 4,  // bigger arrow
+                    strokeColor: color
+                },
+                offset: '100%',
+                repeat: '80px'  // arrows closer
+            }]
+        });
+        tracePath.setMap(map);
+
+        if (pathCoords.length > 0) {
+            map.setCenter(pathCoords[0]);
+        }
+    });
+}
+</script>
+
+
+
+    <script>
+function downloadJSON() {
+    const data = JSON.parse(`{{ json_data|escapejs }}`);
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.getElementById("exportJson");
+    link.href = url;
+    link.download = "traceroute_history_"+`{{ history_id|safe }}`+".json";
+}
+</script>
+
+    <script>
+
+     $("#link_btn").on("click", function () {
+         let assignment = $("#assignment").val();
+         let commandName = $("#commandName").val();
+         let query_id = $("#query_id").val();
+         let assignment_remarks = $("#assignment_remarks").val();
+         if (!assignment) {
+            alert("Please Enter Assignment Name!");
+            return;
+        }
+
+         mydata = {
+             "assignment": assignment,
+             "command":commandName,
+             "query_id":query_id,
+             "assignment_remarks":assignment_remarks,
+             "assignment_query_type": "",
+             "assignment_zone": ""
+         }
+               $.ajax({
+                url: `/link-query/`,
+                method: "POST",
+                headers: {'X-CSRFToken': document.getElementById('csrf').querySelector('input').value},
+                data: mydata,
+                success: function (response) {
+                    if (response.status == 1) {
+                         Swal.fire({
+                            title: 'Success!',
+                            text: 'Query Linked to Assignment Successfully',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                             location.reload();
+                        });
+                    } else {
+                        showError(response.error || "Failed to link query to assignment!");
+                    }
+                },
+                error: function () {
+                    showError("Something went wrong! Please try again.");
+                }
+            });
+          });
+ // Show Error Inside Modal
+    function showError(message) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message,
+            confirmButtonColor: "#d33"
+        });
+    }
+    </script>
+
+    {% endblock %}

@@ -1,0 +1,683 @@
+{% extends 'services_app/vertical_base.html' %}
+
+{% load static %}
+{% load timestamp %}
+{% load custom_filters %}
+
+{% block title %}
+  Discussion Forum
+{% endblock %}
+
+{% block extra_css %}
+  <link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css" />
+  <link href="{% static 'libs/animate.css/animate.min.css' %}" rel="stylesheet" type="text/css" />
+  <style>
+    .card{
+        max-width: 98%;
+        width: 98%;
+        justify-self: center;
+    }
+
+    .chat-box-left{
+      max-width: 100%;
+    }
+    .chat-box-right {
+      margin-left: 0 !important;
+      overflow-y: scroll;
+    }
+    .reply-form textarea {
+      resize: none;
+      font-size: 14px;
+    }
+    .nested-reply {
+      margin-left: 30px;
+      border-left: 2px solid #ddd;
+      color: red; /* Or any style you like */
+      max-width: 97%%;
+      padding: 10px;
+<!-- Discussions feature disabled -->
+<div class="col-lg-9" >
+  <div class="tab-content chat-box-right" >
+    <div class="tab-pane fade show active" id="cat-1">
+      <div class="chat-header p-3">
+        <h6>Category Name</h6>
+        <small class="text-muted">Date</small>
+      </div>
+
+      <div class="p-3 comment-box-container">
+        <div class="input-group">
+          <input type="text" class="form-control comment-input" placeholder="Type your comment here..." data-category-id="1" />
+          <button class="btn btn-primary send-comment-btn" type="button">
+            <i class="la la-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+
+      <div style="padding:20px; text-align:center;">
+        <p class="text-muted">The Discussion Forum has been removed from this deployment.</p>
+      </div>
+    </div>
+  </div>
+</div>
+      border-radius: 10px;
+      color: black;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .ai-summary-title{
+    color: #000000;
+    text-align: center;
+    font-family: normal;
+    font-size: 15px;
+    }
+
+    .show-ai-summary-btn{
+      max-width: 80%;
+    }
+
+    .show-ai-summary-btn:hover{
+      background-color: #4facfe;
+    }
+    .ai_image{
+      width: 30px;
+      height: 30px;
+
+    }
+    /* Wave loading animation */
+    .summary-loading .wave {
+      position: absolute;
+      top: 0;
+      left: -150px;
+      width: 150px;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+      animation: wave-animation 1.5s infinite;
+    }
+    
+    .summary-loading .wave:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+    
+    .summary-loading .wave:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+    
+    @keyframes wave-animation {
+      0% {
+        left: -150px;
+      }
+      100% {
+        left: 100%;
+      }
+    }
+    /* Typing effect for AI summary */
+    .typing {
+      border-right: 2px solid orange;
+      white-space: pre-wrap; /* allow multiple lines */
+      overflow: hidden;
+      display: inline-block;
+      animation: blinkCursor 0.7s steps(1) infinite;
+    }
+
+    @keyframes blinkCursor {
+      50% { border-color: transparent; }
+    }
+
+  </style>
+{% endblock %}
+
+{% block page_content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="page-title-box">
+          <div class="float-end">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item">
+                <a href="#">Menus</a>
+              </li>
+              <li class="breadcrumb-item active">Discussion Forum</li>
+            </ol>
+          </div>
+          <h4 class="page-title">Discussion Forum</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Categories -->
+      <div class="col-lg-3">
+        <div class="chat-box-left" style="height: auto; min-height: 300px; overflow-y: auto; ">
+          <button type="button" class="btn btn-info mb-3" data-bs-toggle="modal" data-bs-target="#topicModal">Add Topic</button>
+
+          <div class="chat-search mb-3">
+            <div class="input-group">
+              <input type="text" class="form-control" placeholder="Search" />
+              <button class="btn btn-de-primary shadow-none search-btn"><i class="la la-search"></i></button>
+              <button class="btn btn-secondary shadow-none clear-search-btn" title="Clear Search" style="margin-left: 5px;">Clear</button>
+            </div>
+          </div>
+
+          <ul class="nav nav-pills flex-column">
+            {% for category in categories %}
+              <li class="nav-item mb-2">
+                <a class="nav-link w-100 text-start {% if forloop.first %}active{% endif %}" data-bs-toggle="tab" href="#cat-{{ category.id }}" role="tab">{{ category.category_name }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+
+<!-- Discussions -->
+<div class="col-lg-9" >
+  <div class="tab-content chat-box-right" >
+    {% for category in categories %}
+      <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="cat-{{ category.id }}">
+        <div class="chat-header p-3">
+          <h6>{{ category.category_name }}</h6>
+          <small class="text-muted">{{ category.created_date|timestamp }}</small>
+        </div>
+
+        <!-- Add Comment -->
+        <div class="p-3 comment-box-container">
+          <div class="input-group">
+            <input type="text" class="form-control comment-input" placeholder="Type your comment here..." data-category-id="{{ category.id }}" />
+            <button class="btn btn-primary send-comment-btn" type="button">
+              <i class="la la-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty container that JS will fill -->
+        <div id="discussion-content-{{ category.id }}">
+          <p class="text-muted">Loading discussions...</p>
+        </div>
+
+      
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+    </div>
+  </div>
+
+  <div id="csrf" hidden>
+    {% csrf_token %}
+  </div>
+
+  <!-- Topic Modal -->
+  <div class="modal fade" id="topicModal" tabindex="-1" role="dialog" aria-labelledby="topicModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-success">
+          <h6 class="modal-title m-0 text-white" id="topicModalLabel">Add Topic</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group row">
+            <label for="topic_name" class="col-sm-3 col-form-label">Topic</label>
+            <div class="col-sm-9">
+              <input type="text" id="topic_name" class="form-control" placeholder="Enter topic title" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-de-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-de-success btn-sm" id="submitTopicBtn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_javascript %}
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+
+
+  <script>
+    const discussionCache = {};
+    const aiSummaryLoaded = {};
+    const aiSummaryCache = {};
+  </script>
+
+
+  <script>
+    function setDivHeight() {
+      const height = window.innerHeight - 60;
+      const elements_left = document.getElementsByClassName("chat-box-left");
+      const elements_right = document.getElementsByClassName("chat-box-right");
+
+      if (elements_left.length > 0) {
+          elements_left[0].style.maxHeight = height + "px";
+      }
+
+      if (elements_right.length > 0) {
+          elements_right[0].style.height = height + "px";
+      }
+
+    }
+
+    setDivHeight();
+    window.addEventListener("resize", setDivHeight);
+
+  </script>
+
+  <script>
+    $(document).ready(function () {
+      // showError helper
+      function showError(message) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: message,
+          confirmButtonColor: '#d33'
+        })
+      }
+    
+      // Add Topic
+      $('#submitTopicBtn').on('click', function () {
+        let topic = $('#topic_name').val().trim()
+        if (!topic) {
+          return showError('Please enter a topic title.')
+        }
+        $.ajax({
+          url: '/add-topic/',
+          method: 'POST',
+          headers: { 'X-CSRFToken': $('#csrf input').val() },
+          data: { action_type: 'add_topic', category_name: topic },
+          success(resp) {
+            if (resp.status === 1) return location.reload()
+            showError(resp.error || 'Failed to add topic.')
+          },
+          error() {
+            showError('Something went wrong!')
+          }
+        })
+      })
+    
+      // Add Comment
+      $(document).on('click', '.send-comment-btn', function () {
+        let $inp = $(this).closest('.input-group').find('.comment-input'),
+          content = $inp.val().trim(),
+          topic_id = $inp.data('category-id')
+        if (!content) return showError('Please enter a comment.')
+        $.ajax({
+          url: '/add-discussion/',
+          method: 'POST',
+          headers: { 'X-CSRFToken': $('#csrf input').val() },
+          data: { action_type: 'add_comment', topic_id, content },
+          success(resp) {
+            if (resp.status === 1) {
+              $inp.val("");
+              delete discussionCache[topic_id];
+              delete aiSummaryLoaded[topic_id];
+              delete aiSummaryCache[topic_id];
+              loadDiscussions(topic_id, true);
+            }else{
+            showError(resp.error || 'Failed to add comment.')
+            }
+          },
+          error() {
+            showError('Something went wrong!')
+          }
+        })
+      })
+    
+      // Vote on a discussion
+      $(document).on('click', '.vote-discussion-btn', function () {
+        let id = $(this).data('id')
+        let $btn = $(this)
+        $.ajax({
+          url: `/vote/discussion/${id}/`,
+          method: 'POST',
+          noLoader: true, 
+          headers: { 'X-CSRFToken': $('#csrf input').val() },
+          success: function (res) {
+            if (res.status === 1) {
+              if (res.voted) {
+                $btn.addClass('voted')
+              } else {
+                $btn.removeClass('voted')
+              }
+              $(`#vote-count-discussion-${id}`).text(res.votes)
+             // window.location.reload()
+            }
+          },
+          error: function () {
+            showError('Failed to vote on discussion.')
+          }
+        })
+      })
+    
+      // Vote on a reply
+      $(document).on('click', '.vote-reply-btn', function () {
+        let id = $(this).data('id')
+        let $btn = $(this)
+        $.ajax({
+          url: `/vote/reply/${id}/`,
+          method: 'POST',
+          noLoader: true, 
+          headers: { 'X-CSRFToken': $('#csrf input').val() },
+          success: function (res) {
+            if (res.status === 1) {
+              if (res.voted) {
+                $btn.addClass('voted')
+              } else {
+                $btn.removeClass('voted')
+              }
+              $(`#vote-count-reply-${id}`).text(res.votes)
+              //window.location.reload()
+            }
+          },
+          error: function () {
+            showError('Failed to vote on reply.')
+          }
+        })
+      })
+    
+      // Add Reply
+      $(document).on('click', '.send-reply-btn', function () {
+        let $textarea = $(this).siblings('.reply-input'),
+          content = $textarea.val().trim(),
+          discussion_id = $textarea.data('discussion-id'),
+          topic_id = $textarea.data('topic-id')
+    
+        if (!content) return showError('Please enter a reply.')
+    
+        $.ajax({
+          url: '/add-discussion/',
+          method: 'POST',
+          headers: { 'X-CSRFToken': $('#csrf input').val() },
+          data: { action_type: 'add_reply', discussion_id, content , topic_id},
+          success(resp) {
+            if (resp.status === 1)  {
+              delete discussionCache[topic_id];
+              delete aiSummaryLoaded[topic_id];
+              delete aiSummaryCache[topic_id];
+              loadDiscussions(topic_id, true);
+            }else{
+              showError(resp.error || 'Failed to add reply.')
+            }
+          },
+          error() {
+            showError('Something went wrong!')
+          }
+        })
+      })
+    
+      // LIVE SEARCH
+      $('.chat-search input').on('input', function () {
+        let term = $(this).val().trim().toLowerCase()
+        $('.nav-pills .nav-link').each(function () {
+          let txt = $(this).text().trim().toLowerCase()
+          $(this).parent()[txt.includes(term) ? 'show' : 'hide']()
+        })
+      })
+    
+      // CLEAR SEARCH
+      $('.chat-search .clear-search-btn').on('click', function () {
+        $('.chat-search input').val('')
+        $('.nav-pills .nav-link').parent().show()
+        $('.nav-pills .nav-link').first().tab('show')
+      })
+    })
+    $(document).on('click', '.show-ai-summary-btn', function () {
+      const catId = $(this).data('cat-id');
+      $(this).hide();
+      loadAISummary(catId, true);
+    });
+
+
+
+  </script>
+
+
+  <script>
+    function startAISummaryEffect(summaryBoxId, summaryParaId) {
+      const summaryBox = document.getElementById(summaryBoxId);
+      const aiSummaryPara = document.getElementById(summaryParaId);
+
+      if (!summaryBox || !aiSummaryPara) return;
+
+      aiSummaryPara.style.display = 'none';
+      summaryBox.classList.add('summary-loading');
+    }
+    function stopAISummaryEffect(summaryBoxId, summaryParaId) {
+      const summaryBox = document.getElementById(summaryBoxId);
+      const aiSummaryPara = document.getElementById(summaryParaId);
+
+      if (!summaryBox || !aiSummaryPara) return;
+
+      aiSummaryPara.style.display = 'block';
+      summaryBox.classList.remove('summary-loading');
+    }
+    function loadAISummary(catId, ai_summary_possible) {
+      if (ai_summary_possible !== true) return;
+
+      const summaryBoxId = `summary-box-${catId}`;
+      const summaryParaId = `ai_summary_para-${catId}`;
+      const summaryContainer = $(`#ai-summary-container-${catId}`);
+
+      //  If already cached → render instantly (NO API CALL)
+      if (aiSummaryCache[catId]) {
+        summaryContainer.show().html(renderSummaryHTML(summaryBoxId, summaryParaId));
+        typeEffect(summaryParaId, aiSummaryCache[catId], 20);
+        return;
+      }
+
+      //  Render loading UI
+      summaryContainer.show().html(renderSummaryHTML(summaryBoxId, summaryParaId));
+      startAISummaryEffect(summaryBoxId, summaryParaId);
+
+      //  Fetch ONLY once
+      fetch(`/get-ai-summary/${catId}/`, { noLoader: true })
+        .then(res => res.json())
+        .then(data => {
+          stopAISummaryEffect(summaryBoxId, summaryParaId);
+
+          if (data.status === 1 && data.ai_summary) {
+            aiSummaryCache[catId] = data.ai_summary; //  CACHE IT
+            typeEffect(summaryParaId, data.ai_summary, 30);
+          } else {
+            $(`#${summaryParaId}`).text(
+              "There’s not enough discussion content to summarize at the moment."
+            );
+          }
+        })
+        .catch(() => {
+          stopAISummaryEffect(summaryBoxId, summaryParaId);
+          $(`#${summaryParaId}`).text("Failed to fetch AI Summary.");
+        });
+    }
+    function renderSummaryHTML(summaryBoxId, summaryParaId) {
+      return `
+        <div class="w-full d-flex justify-content-center">
+          <div id="${summaryBoxId}" class="summary-box mb-3 w-[500px]">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <h6 class="ai-summary-title p-1 m-1">AI Summary</h6>
+            <p id="${summaryParaId}" style="color:#303e67"></p>
+          </div>
+        </div>
+      `;
+    }
+
+
+
+    function loadDiscussions(catId, forceReload = false) {
+
+      //  Use cache if available
+      if (!forceReload && discussionCache[catId]) {
+        renderDiscussions(catId, discussionCache[catId]);
+        return;
+      }
+
+      const container = document.getElementById(`discussion-content-${catId}`);
+      container.innerHTML = `<p class="text-muted text-center my-16">Loading...</p>`;
+
+      fetch(`/get-discussions/${catId}/`)
+        .then(res => res.json())
+        .then(data => {
+          discussionCache[catId] = data;   //  cache it
+          renderDiscussions(catId, data);
+        })
+        .catch(() => {
+          container.innerHTML = `<p class="text-danger">Failed to load discussions.</p>`;
+        });
+    }
+
+    function renderDiscussions(catId, data) {
+
+      const container = document.getElementById(`discussion-content-${catId}`);
+      let html = "";
+
+      if (data.discussions && data.discussions.length > 0) {
+
+      const hasCachedSummary = !!aiSummaryCache[catId];
+
+      html += `
+        <div class="w-full d-flex justify-content-center mb-3">
+          ${
+            hasCachedSummary
+              ? `<div id="ai-summary-container-${catId}" class="mt-2"></div>`
+              : `
+                <button class="btn btn-outline-primary show-ai-summary-btn"
+                        data-cat-id="${catId}"
+                        style="display:${data.ai_summary_possible ? 'block' : 'none'}">
+                  <img src="/static/images/ai_summary_icon.png" class="ai_image"/>
+                  Summarise this discussion
+                </button>
+                <div id="ai-summary-container-${catId}" class="mt-2" style="display:none;"></div>
+              `
+          }
+        </div>
+      `;
+
+
+        data.discussions.forEach(d => {
+          html += buildDiscussionHTML(d, catId);
+        });
+
+      } else {
+        html = `<p>No discussions yet.</p>`;
+      }
+
+      container.innerHTML = html;
+      if (aiSummaryCache[catId]) {
+        loadAISummary(catId, true); // uses cache, no API call
+      }
+
+      //  Load AI summary only ONCE
+      if (data.ai_summary_possible && !aiSummaryLoaded[catId]) {
+        aiSummaryLoaded[catId] = true;
+        {% comment %} loadAISummary(catId, true); {% endcomment %}
+      }
+    }
+
+    function buildDiscussionHTML(d, catId) {
+      return `
+        <div class="card mb-2">
+          <div class="card-body">
+            <strong>${d.user}</strong>
+            <p>${linkifyText(d.discussion)}</p>
+            <small class="text-muted">${formatTimestamp(d.created_date)}</small>
+
+            <button class="btn btn-sm btn-outline-info vote-discussion-btn" data-id="${d.id}">
+              👍 <span id="vote-count-discussion-${d.id}">${d.vote_count}</span>
+            </button>
+
+            <div class="replies mt-1">
+              ${
+                d.replies.length
+                  ? d.replies.map(r => `
+                    <div class="nested-reply">
+                      <strong>${r.user}</strong>
+                      <p>${linkifyText(r.content)}</p>
+                      <small class="text-muted">${formatTimestamp(r.created_date)}</small>
+                      <button class="btn btn-sm btn-outline-info vote-reply-btn" data-id="${r.id}">
+                        👍 <span id="vote-count-reply-${r.id}">${r.vote_count}</span>
+                      </button>
+                    </div>`).join('')
+                  : `<p class="text-muted">No replies yet.</p>`
+              }
+            </div>
+
+            <div class="reply-form mt-3">
+              <textarea class="form-control reply-input"
+                        data-discussion-id="${d.id}"
+                        data-topic-id="${catId}"
+                        placeholder="Write a reply..."></textarea>
+              <button class="btn btn-sm btn-secondary mt-2 send-reply-btn">Reply</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+      // Typing effect function
+    
+    function typeEffect(elementId, text, speed = 20) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = ""; 
+        let i = 0;
+        function typing() {
+          if (i < text.length) {
+            el.textContent += text.charAt(i);
+            i++;
+            setTimeout(typing, speed);
+          } else {
+            el.classList.remove("typing"); // remove cursor after finish
+          }
+        }
+        typing();
+    }
+
+    function formatTimestamp(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+    }
+
+    // Load on tab switch
+    document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(tab => {
+      tab.addEventListener("shown.bs.tab", function () {
+        const catId = this.getAttribute("href").replace("#cat-", "")
+        loadDiscussions(catId);
+        console.log("Load Discussion" + catId);
+    });
+    })
+
+
+    // Auto-load first category
+    document.addEventListener("DOMContentLoaded", () => {
+      const firstTab = document.querySelector('.tab-pane.fade.show.active')
+      //console.log("First Cat ", firstTab)
+      if (firstTab) {
+        const catId = firstTab.id.replace("cat-", "")
+        loadDiscussions(catId)
+      }
+    })
+
+    //Link Detection and Set it as Clickable
+    function linkifyText(text = "") {
+      return text.replace(
+        /(https?:\/\/[^\s]+)/g,
+        '<a href="$1" target="_blank" style="color:blue;text-decoration:underline;">$1</a>'
+      );
+    }
+
+
+  </script>
+
+{% endblock %}

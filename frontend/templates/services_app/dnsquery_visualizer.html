@@ -1,0 +1,560 @@
+{% extends 'services_app/vertical_base_report.html' %}
+
+{% load static %}
+{% load custom_filters %}
+{% block title %}DNS Query-Reports{% endblock %}
+ {% block extra_css %}
+
+ <link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+    <style>
+    .page-wrapper,
+.page-content-tab {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    width: 100% !important
+}
+
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+    th {
+            cursor: pointer; /* Change cursor to pointer on hover */
+        }
+
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<div class="container-fluid">
+    <!-- Page-Title -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-title-box">
+                <div class="float-end">
+                    <ol class="breadcrumb">
+
+                        <li class="breadcrumb-item"><a href="{% url 'services_app:dns_command_page' %}">DNS Visualizer</a>
+                        </li><!--end nav-item-->
+                        <li class="breadcrumb-item active">Reports</li>
+                    </ol>
+                </div>
+                <h4 class="page-title d-flex align-items-center">
+                    <a href="{% url 'services_app:dns_command_page' %}">
+                        <img src="{% static 'images/AIORI_logo.png' %}" alt="AIORI Logo" style="height: 30px; margin-right: 10px;">
+                    </a>
+                    DNS Visualizer Reports
+                </h4>
+
+            </div><!--end page-title-box-->
+        </div><!--end col-->
+    </div>
+    <!-- end page title end breadcrumb -->
+    <div class="row">
+           <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="d-flex align-items-center">
+                                 {% if is_editable %}
+                        <a href="{% url 'services_app:dns_command_page' %}?tab=dns_reports" class="me-2 no-print" style="font-size: 1.2rem; color: #333;">
+                            <i class="mdi mdi-arrow-left-bold-circle"></i>
+                        </a>
+                                {% endif %}
+                        <h4 class="card-title mb-0">DNS Query Reports</h4>
+                    </div>
+                        </div><!--end col-->
+                        <div class="col-auto no-print">
+                     {% if is_editable %}
+    <!-- Show button if True -->
+    <button type="button" style="float:right;margin-left: 8px;" class="btn btn-sm btn-info"
+            data-bs-toggle="modal" data-bs-target="#publicModal">
+        Query Visibility
+    </button>
+
+
+
+
+                            {% if user_data.is_student  %}
+                              <button type="button" style="float:right;margin-left: 8px;" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#assignmentModal">
+    Link Assignment
+  </button>
+                            {% endif %}
+{% endif %}
+
+
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-primary dropdown-toggle no-print" data-bs-toggle="dropdown" aria-expanded="false">
+                              Export Result
+                            </button>
+                            <ul class="dropdown-menu">
+                              <li><a class="dropdown-item no-print" onclick="downloadCSV()">Export as CSV</a></li>
+                              <li><a class="dropdown-item no-print"  onclick="printScreen()">Export as PDF</a></li>
+                                <li><a class="dropdown-item no-print" onclick="downloadJSON()" id="exportJson">Export as JSON</a></li>
+
+                            </ul>
+                          </div>
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="thead-light">
+                                <tr>
+                                      <th>Domain</th>
+                                    <th>Anchor</th>
+                                     <th>Query Type</th>
+                                     <th>Answer</th>
+                                </tr><!--end tr-->
+                            </thead>
+                            <tbody>
+
+                                <tr>
+                                    <td>{{ domain_details.host_name }}</td>
+                            <td>{{ domain_details.anchor_name }}</td>
+                            <td>{{ domain_details.dnsquery_type }}</td>
+                            <td>{{ dns_report_list.domain_data.answer.0 }}</td>
+
+
+                                </tr><!--end tr-->
+
+                            </tbody>
+                        </table> <!--end table-->
+                    </div><!--end /div-->
+                </div><!--end card-body-->
+            </div><!--end card-->
+
+    </div><!--end row-->
+
+    <div class="row">
+    {% if flag == 1 %}
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                             <h4><span><i class="nav-icon fas fa-anchor"></i></span> Authoritative Zone</h4>
+                        </div><!--end col-->
+                        <div class="col-auto">
+
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Resource Record</th>
+                          <th>Value</th>
+                          <th>Answered</th>
+                        <!--  <th>RTT(ms)</th>-->
+                           <th title="Round Trip Delay+Server Time">RTT(ms)<span style="font-size: xx-small;color: blue">(RTD+ST)</span> </th>
+                           <th title="Round Trip Delay in milliseconds">RTD(ms)</th>
+                           <th title="Server Time in milliseconds">ST(ms)</th>
+                                </tr><!--end tr-->
+                            </thead>
+                            <tbody>
+                             {% for row in dns_report_list.domain_data.servers %}
+                           {% for k,v in row.items %}
+                      <tr>
+                          <td>{{ k }}</td>
+                          <td>{{ v.ip }}</td>
+                          <td>{{ v.is_answer }}</td>
+                     <!--    <td>{% if v.rtt != None %}{{ v.rtt_ms }}{% else %} {% endif %}</td>-->
+
+                      <td>{{ v.query_time|to_milliseconds }}</td>
+                      <td>{% if v.rtd != None %}{{ v.rtd_ms }}{% else %} {% endif %}</td>
+                      <td>{% if v.server_ms != None %}{{ v.server_ms }}{% else %} {% endif %}</td>
+                      </tr>
+                      {% endfor %}
+                  {% endfor %}
+
+                            </tbody>
+                        </table> <!--end table-->
+                    </div><!--end /div-->
+                </div><!--end card-body-->
+            </div><!--end card-->
+
+         </div>
+    {% else %}
+    <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                             <h4><span><i class="nav-icon fas fa-anchor"></i></span> Authoritative Zone</h4>
+                        </div><!--end col-->
+                        <div class="col-auto">
+
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="thead-light">
+                                <tr>
+                                   <th>Resource Record</th>
+                            <th>Value</th>
+                            <th>Answered</th>
+                            <th>Time(ms)</th>
+                                </tr><!--end tr-->
+                            </thead>
+                            <tbody>
+                             {% for row in dns_report_list.domain_data.servers %}
+                             {% for k,v in row.items %}
+                        <tr>
+                            <td>{{ k }}</td>
+                            <td>{{ v.ip }}</td>
+                            <td>{{ v.is_answer }}</td>
+                         <td>{{ v.query_time|to_milliseconds }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+
+                            </tbody>
+                        </table> <!--end table-->
+                    </div><!--end /div-->
+                </div><!--end card-body-->
+            </div><!--end card-->
+
+         </div>
+     {% endif %}
+
+         <div class="col-lg-6">
+
+              <canvas id="chart1"></canvas>
+
+<br>
+             <br>
+<button class="btn btn-dark btn-sm no-print" style="float: right" onclick="downloadChart1()">Export as PNG</button>
+        </div><!--end col-->
+    </div><!--end row-->
+<div class="row">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                              <h4><span><i class="nav-icon fas fa-anchor"></i></span> TLD Zone</h4>
+                        </div><!--end col-->
+                        <div class="col-auto">
+
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" >
+                              <thead>
+                        <tr>
+                            <th>Resource Record</th>
+                            <th>Value</th>
+                            <th>Time(ms)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                         {% for row in dns_report_list.tld_data.servers %}
+                             {% for k,v in row.items %}
+                        <tr>
+                            <td>{{ k }}</td>
+                            <td>{{ v.ip }}</td>
+                            <td>{{ v.query_time|to_milliseconds }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+
+                    </tbody>
+                        </table> <!--end table-->
+                    </div><!--end /div-->
+                </div><!--end card-body-->
+            </div><!--end -->
+                    </div><!--end col-->
+
+         <div class="col-6">
+
+              <canvas id="chart2"></canvas>
+             <br>
+             <br>
+<button class="btn btn-dark btn-sm no-print" style="float: right" onclick="downloadChart2()">Export as PNG</button>
+          </div>
+
+    </div><!--end row-->
+<div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                              <h4><span><i class="nav-icon fas fa-anchor"></i></span> Root Zone</h4>
+                        </div><!--end col-->
+                        <div class="col-auto">
+
+                        </div><!--end col-->
+                    </div> <!--end row-->
+                </div><!--end card-header-->
+                <div class="card-body">
+                    <div class="table-responsive browser_users">
+                        <table class="table mb-0" >
+                              <thead>
+                        <tr>
+                            <th>Resource Record</th>
+                            <th>Value</th>
+                            <th>Time(ms)</th>
+                        </tr>
+                    </thead>
+                     <tbody>
+                       {% for row in dns_report_list.root_data.servers %}
+                            {% for k,v in row.items %}
+                        <tr>
+                            <td>{{ k }}</td>
+                            <td>{{ v.ip }}</td>
+                            <td>{{ v.query_time|to_milliseconds }}</td>
+                        </tr>
+{% endfor %}
+                    {% endfor %}
+
+                    </tbody>
+                        </table> <!--end table-->
+                    </div><!--end /div-->
+                </div><!--end card-body-->
+            </div><!--end card-->
+        </div>
+         <div class="col-lg-6">
+
+              <canvas id="chart3"></canvas>
+<br>
+             <br>
+<button class="btn btn-dark btn-sm no-print" style="float: right" onclick="downloadChart3()">Export as PNG</button>
+        </div><!--end col-->
+
+    </div><!--end row-->
+
+</div><!-- container -->
+
+    <!-- Assignment Modal -->
+<div class="modal fade" id="assignmentModal" tabindex="-1" aria-labelledby="assignmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="assignmentModalLabel">Select Assignment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="assignment" class="form-label">Choose Assignment</label>
+            <select class="form-select" id="assignment" name="assignment">
+              <option value="">-- Select Assignment --</option>
+             {% for row in assignment_list %}
+              <option value="{{ row.id }}">{{ row.assignment_name }}</option>
+             {% endfor %}
+            </select>
+          </div>
+
+         <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="commandName" class="form-label">Command</label>
+                <input type="text" class="form-control" id="commandName" name="commandName" value="dnsquery" disabled>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="query_id" class="form-label">Query ID</label>
+                <input type="text" class="form-control" id="query_id" name="query_id" value="{{ history_id }}" disabled>
+              </div>
+              </div>
+
+             <div class="mb-3">
+                <label for="assignment_remarks" class="form-label">Remarks</label>
+                <input type="text" class="form-control" id="assignment_remarks" name="assignment_remarks" placeholder="Enter remarks" >
+             </div>
+
+
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button" id="link_btn" class="btn btn-warning">Link</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+ <!-- Public Modal -->
+<div class="modal fade" id="publicModal" tabindex="-1" aria-labelledby="publicModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="publicModalLabel">Measurement Visibility</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+          <p><i>If made public, this measurement will be visible in the AIORI Public Measurements section, accessible to the entire community.</i></p>
+
+
+
+         <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="manage_public_private" class="form-label">Manage Query </label>
+            <select class="form-select" id="manage_public_private" name="manage_public_private" >
+              <option>-- Select--</option>
+              <option value="true">Public</option>
+              <option value="false">Private</option>
+            </select>
+          </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="manage_query_id" class="form-label">Query ID</label>
+                <input type="text" class="form-control" id="manage_query_id" name="manage_query_id" value="{{ history_id }}" disabled>
+              </div>
+              </div>
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button" id="submit_manage_query_btn" class="btn btn-success">Submit</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+
+<div id="csrf" hidden>{% csrf_token %}</div>
+{% endblock %}
+
+{% block extra_javascript %}
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+     <script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        // Fetching data from Django context
+        const labels = {{ chart_data.labels|safe }};
+        const server_time_data = {{ chart_data.server_time|safe }};
+        const rtd_data = {{ chart_data.rtd|safe }};
+        const query_time_data = {{ chart_data.query_time|safe }};
+
+        const ctx = document.getElementById("chart1").getContext("2d");
+
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Server Time (ms)",
+                data: server_time_data,
+                backgroundColor: "rgba(232, 191, 225, 0.95)", // Pink
+                borderColor: "rgba(231, 82, 193, 0.78)",
+                borderWidth: 1,
+                stack: "RTT-RTD",
+                type: 'bar'
+              },
+              {
+                label: "RTD (ms)",
+                data: rtd_data,
+
+                backgroundColor: "rgba(146, 196, 230, 0.88)", // Blue
+                borderColor: "rgba(58, 163, 233, 0.83)",
+                borderWidth: 1,
+                stack: "RTT-RTD", // Stack with RTT
+                type: 'bar'
+              },
+              {
+                label: "Query Time (ms)",
+                data: query_time_data,
+                backgroundColor: "rgb(218,210,243)", // Violet
+                borderColor: "rgb(195,135,235)",
+                borderWidth: 1,
+                stack: "Query" // Separate bar
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: { stacked: true, barPercentage: 1.0, categoryPercentage: 1.0},
+              y: { stacked: true, barPercentage: 1.0, categoryPercentage: 1.0, beginAtZero: true, title: { display: true, text: "Time (ms)" } }
+            }
+
+          }
+        });
+      });
+  // Function to create a chart dynamically
+    function createBarChart(canvasId, labels, dataValues, chartLabel, borderColor, backgroundColor) {
+      var ctx = document.getElementById(canvasId).getContext('2d');
+
+      var chartData = {
+        labels: labels,  // Set the labels array
+        datasets: [{
+          label: chartLabel, // The label for the dataset
+          data: dataValues,  // The data values (query_time)
+          backgroundColor: backgroundColor, // Bar color
+          borderColor: borderColor, // Border color
+          borderWidth: 1 // Border width
+        }]
+      };
+
+      var myChart = new Chart(ctx, {
+        type: 'bar', // Specifies that we want a bar chart
+        data: chartData, // Pass in the data
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true // Start y-axis from 0
+            }
+          }
+        }
+      });
+    }
+       // Chart 2: Using dns_report_list.domain_data.servers
+    var labels2 = [];
+    var dataValues2 = [];
+    {% for row in dns_report_list.tld_data.servers %}
+      {% for k, v in row.items %}
+        labels2.push("{{ k }}");
+        dataValues2.push({{ v.query_time|to_milliseconds }});
+      {% endfor %}
+    {% endfor %}
+    createBarChart("chart2", labels2, dataValues2, "TLD Zone Graphical View", 'rgba(75, 192, 192, 1)', 'rgba(75, 192, 192, 0.2)');
+
+    // Chart 3: Using dns_report_list.root_data.servers
+    var labels3 = [];
+    var dataValues3 = [];
+    {% for row in dns_report_list.root_data.servers %}
+      {% for k, v in row.items %}
+        labels3.push("{{ k }}");
+        dataValues3.push({{ v.query_time|to_milliseconds }});
+      {% endfor %}
+    {% endfor %}
+    createBarChart("chart3", labels3, dataValues3, "Root Zone Graphical View", 'rgb(89,157,43)', 'rgb(178,211,163)');
+
+    </script>
+
+<script>
+  window.dnsData = JSON.parse(`{{ json_data|escapejs }}`);
+  window.historyId = "{{ history_id }}";
+</script>
+<script src="{% static 'services_app/js/dns_visualizer.js' %}"></script>
+    <script src="{% static 'services_app/js/public_report.js' %}"></script>
+{% endblock %}

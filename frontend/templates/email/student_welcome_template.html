@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome Student</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      background-color: #ffffff;
+      margin: 30px auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+    .header {
+      background-color: #0066cc;
+      color: white;
+      padding: 20px;
+      border-radius: 10px 10px 0 0;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+    }
+    .content {
+      padding: 20px 0;
+    }
+    .content h2 {
+      color: #0066cc;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #0066cc;
+      color: #fff;
+      padding: 12px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    .footer {
+      font-size: 13px;
+      color: #777;
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .info-table td {
+      padding: 8px 0;
+    }
+    .info-label {
+      font-weight: bold;
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Welcome to Our AIORI Platform!</h1>
+    </div>
+    <div class="content">
+      <p>Dear <strong>{{ user_name }}</strong>,</p>
+
+      <p>We're excited to welcome you as a student under: <strong>{{ faculty }}</strong>. Your account has been successfully created!</p>
+
+      <table class="info-table">
+        <tr>
+          <td class="info-label">Username:</td>
+          <td>{{ user_name }}</td>
+        </tr>
+        <tr>
+          <td class="info-label">Email:</td>
+          <td>{{ user_email }}</td>
+        </tr>
+{#        <tr>#}
+{#          <td class="info-label">Temporary Password:</td>#}
+{#          <td>{{ content }}</td>#}
+{#        </tr>#}
+      </table>
+
+      <p>To get started, please click the button below to set your password and access your dashboard:</p>
+
+      <p style="text-align:center;">
+        <a href="{{ reset_link }}" class="btn" style="background-color:#162899;text-decoration: none;color: white">Reset Your Password</a>
+      </p>
+
+      <p>Once you've set your password, you can log into your student dashboard using the link below:</p>
+      <p style="text-align:center;">
+        <a href="{{ dashboard_link }}" class="btn" style="background-color:#32a424;text-decoration: none;color: white">Go to Dashboard</a>
+      </p>
+
+      <p>If you face any issues, feel free to contact our support team.</p>
+
+      <p>Wishing you a wonderful academic journey!<br><strong>The AIORI Management Team</strong></p>
+    </div>
+    <div class="footer">
+      © {{ current_year }} India Internet Foundation. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>

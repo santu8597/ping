@@ -1,0 +1,207 @@
+{% extends 'services_app/vertical_base.html' %}
+{% load static %}
+
+{% block title %}Zone{% endblock %}
+{% block extra_css %}
+    <link href="{% static '/services_app/css/zone.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'libs/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block page_content %}
+
+<div class="container-fluid">
+
+
+  <!-- Page Header -->
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="page-title-box">
+        <div class="float-end">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Manage</a></li>
+            <li class="breadcrumb-item active">Zones</li>
+          </ol>
+        </div>
+        <h4 class="page-title">Zone Management</h4>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- The rest of your #zonePromptCard content remains the same -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card map-background" id="zonePromptCard">
+        <div class="card-body">
+          <p class="card-text" style="color: currentColor">Click below to start creating a new zone by selecting anchors on the map</p>
+          <button id="createZoneBtn" class="btn btn-primary">Add Zone</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Map -->
+  <div class="row" id="originalMapCard">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="card-title">Select Anchor to select zone</h4>
+      </div>
+      <div class="card-body">
+        <div id="map" class="gmaps" style="width: 100%; height: 400px;"></div>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <div id="csrf" hidden>{% csrf_token %}</div>
+
+  
+
+
+  <!-- Zone Table -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <div class="row align-items-center">
+            <div class="col">
+              <h4 class="card-title">Zone List</h4>
+            </div>
+            <div class="col-auto">
+              <p class="badge badge-soft-pink font-11 p-1 mb-0">Last updated {{ time_diff }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive browser_users">
+            <table class="table mb-0">
+              <thead class="thead-light">
+                <tr>
+                  <th>No</th>
+                  <th>Zone Name</th>
+                  <th>Anchor</th>
+                  <th>Zone Area</th>
+                  <th>Latitudes</th>
+                  <th>Longitudes</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in zone_data %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ row.user_zone_name }}</td>
+                  <td><ul class="zone-anchor-list">{% for a in row.user_anchor_names %}<li><i class="mdi mdi-anchor"></i> {{ a|cut:" "|safe }}</li> {% endfor %}</ul></td>
+                  <td>{{ row.user_anchor_locations|join:", " }}</td>
+
+                <td>   {% for val in row.user_anchor_latitudes %}
+                          {{ val|floatformat:2 }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}</td>
+                <td>   {% for val in row.user_anchor_longitudes %}
+                      {{ val|floatformat:2 }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}</td>
+                  <td>
+                    <a href="javascript:void(0);" class="zone-delete-btn" data-id="{{ row.id }}" data-zone="{{ row.user_zone_name }}">
+                      <i class="las la-trash-alt text-secondary font-18"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<input id="api_header" value="{{ api_prefix_viz }}" hidden>
+
+{% endblock %}
+
+{% block extra_javascript %}
+    <script>
+  function initMap() {
+    // Only a trigger — actual logic is in map.js
+    initMapFromScript();
+  }
+</script>
+    <!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCuQoxZOzEbdQ2CCT3GT4cCOyNBAB5t_oQ&callback=initMap&libraries=&v=weekly" async defer></script>
+
+
+<!-- Custom map logic -->
+<script src="{% static 'services_app/js/zone.js' %}"></script>
+  <!-- jQuery and SweetAlert2 (required for zone deletion and popups) -->
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+   <script src="{% static 'libs/sweetalert2/sweetalert2.min.js' %}"></script>
+
+  <!-- 1) Zone‐deletion logic -->
+  <script>
+    $(function () {
+      if (!window.zoneDeleteListenerBound) {
+        $(document).on("click", ".zone-delete-btn", function () {
+          const zoneId   = $(this).data("id");
+          const zoneName = $(this).data("zone");
+          if (!zoneId) return;
+
+          Swal.fire({
+            title: "Are you sure?",
+            text:  `Delete zone: ${zoneName || zoneId}?`,
+            icon:  "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            zIndex: 3000
+          }).then(result => {
+            if (!result.isConfirmed) return;
+
+            $.ajax({
+              url: "/zone/",
+              method: "PUT",
+              headers: {
+                "X-CSRFToken": document.querySelector("#csrf input").value,
+                "Content-Type": "application/json"
+              },
+              data: JSON.stringify({ zone_id: zoneId }),
+              success(resp) {
+                if (resp.status === 1) {
+                  Swal.fire({
+                    title: "Deleted!",
+                    text:  "Zone has been deleted.",
+                    icon:  "success",
+                    zIndex: 3000
+                  }).then(() => location.reload());
+                } else {
+                  Swal.fire({
+                    title: "Error",
+                    text:  resp.message || "Failed to delete zone.",
+                    icon:  "error",
+                    zIndex: 3000
+                  });
+                }
+              },
+              error() {
+                Swal.fire({
+                  title: "Error",
+                  text:  "Server error while deleting zone.",
+                  icon:  "error",
+                  zIndex: 3000
+                });
+              }
+            });
+          });
+        });
+
+        window.zoneDeleteListenerBound = true;
+      }
+    });
+  </script>
+
+  <!-- 2) “Add Zone” button → call zone.js’s openZoneModal() -->
+  <script>
+    document.getElementById("createZoneBtn").addEventListener("click", function() {
+      window.openZoneModal();
+    });
+  </script>
+{% endblock %}

@@ -2,15 +2,8 @@
 from django.urls import path, re_path
 from . import webservice
 from rest_framework.authtoken import views as restview
-from apscheduler.schedulers.background import BackgroundScheduler
-import pytz  # New Addition
-
-from datetime import datetime
-# from apscheduler.schedulers.blocking import BlockingScheduler
 from django.conf import settings
 from django.conf.urls.static import static
-# from apscheduler.scheduler import Scheduler
-from .sync import sync_anchor_ip, sync_pending_measurements
 from .webservice import command_name_view, commend_execution_view, influxdb_client, download_view, \
     anchor_registration_view, anycast_view,qr_api_view
 
@@ -120,43 +113,4 @@ urlpatterns = [
 
 ]
 # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# ----------------------------------------------------------------
-#
-#   Application Scheduler // pip install apscheduler.
-#
-# ----------------------------------------------------------------
-import threading
-
-# scheduler = BackgroundScheduler()     # Old one
-scheduler = BackgroundScheduler(timezone=pytz.timezone('UTC'))
-# scheduler = BackgroundScheduler(timezone=pytz.timezone('Asia/Kolkata'))
-
-scheduler.add_job(commend_execution_view.QueryHistoryStatusUpdateCorn, 'interval', minutes=30)
-scheduler.add_job(anchor_registration_view.SaveAnchorDetailsFromAIORICronClass, 'interval', minutes=53)
-# scheduler.add_job(anchor_registration_view.UserLeaseAnchorResetCron, 'interval', minutes=1440)
-scheduler.add_job(
-    sync_anchor_ip,
-    'cron',
-    day_of_week='sat',
-    hour=2,
-    minute=0,
-    id='sync_anchor_ip_weekly',
-    replace_existing=True
-)
-
-scheduler.add_job(
-    sync_pending_measurements,
-    'cron',
-    hour=17,
-    minute=0,
-    id='sync_pending_measurements_daily',
-    replace_existing=True
-)
-scheduler.add_job(commend_execution_view.RD3MNPinCommandExecutionCornView, 'interval', minutes=7)
-scheduler.add_job(anycast_view.RD3MNPinCommandExecutionForRootServerCornView, 'cron', hour=0, minute=30)
-scheduler.add_job(anycast_view.RootServerPinResultUpdateCornView, 'cron', hour=0, minute=40)
-# scheduler.add_job(anycast_view.RootServerSoaResultUpdateCornView, 'interval', hours=15, minutes=20)
-scheduler.start()
-# scheduler.add_job(commend_execution_view.printit, 'cron', second=1)
 

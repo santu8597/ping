@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'backend.subscription',
     'backend.anchor',
     'corsheaders',
-    'apscheduler',
+    'django_celery_beat',
     'storages'
 
 
@@ -371,3 +371,51 @@ SIMPLE_JWT = {
 }
 
 CSRF_TRUSTED_ORIGINS = CONFIG.CSRF_TRUSTED_ORIGINS
+
+# ----------------------------------------------------------------
+# Celery Configuration
+# ----------------------------------------------------------------
+CELERY_BROKER_URL = CONFIG.CELERY_BROKER_URL
+CELERY_RESULT_BACKEND = CONFIG.CELERY_RESULT_BACKEND
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_ENABLE_UTC = True
+
+# ----------------------------------------------------------------
+# Celery Beat Schedule
+# Replaces APScheduler jobs from backend/anchor/urls.py
+# ----------------------------------------------------------------
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'query-history-status-update': {
+        'task': 'backend.anchor.tasks.query_history_status_update_task',
+        'schedule': 30 * 60,  # every 30 minutes (in seconds)
+    },
+    'save-anchor-details-from-aiori': {
+        'task': 'backend.anchor.tasks.save_anchor_details_from_aiori_task',
+        'schedule': 53 * 60,  # every 53 minutes
+    },
+    'sync-anchor-ip-weekly': {
+        'task': 'backend.anchor.tasks.sync_anchor_ip_task',
+        'schedule': crontab(hour=2, minute=0, day_of_week='saturday'),
+    },
+    'sync-pending-measurements-daily': {
+        'task': 'backend.anchor.tasks.sync_pending_measurements_task',
+        'schedule': crontab(hour=17, minute=0),
+    },
+    'rd3mn-pin-command-execution': {
+        'task': 'backend.anchor.tasks.rd3mn_pin_command_execution_task',
+        'schedule': 7 * 60,  # every 7 minutes
+    },
+    'rd3mn-pin-command-execution-root-server': {
+        'task': 'backend.anchor.tasks.rd3mn_pin_command_execution_root_server_task',
+        'schedule': crontab(hour=0, minute=30),
+    },
+    'root-server-pin-result-update': {
+        'task': 'backend.anchor.tasks.root_server_pin_result_update_task',
+        'schedule': crontab(hour=0, minute=40),
+    },
+}

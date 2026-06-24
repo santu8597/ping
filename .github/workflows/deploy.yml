@@ -8,8 +8,6 @@ branches:
 jobs:
 deploy:
 runs-on: ubuntu-latest
-
-```
 steps:
   - name: Checkout Repository
     uses: actions/checkout@v4
@@ -39,4 +37,3 @@ steps:
         sudo systemctl restart celery-worker
 
         sudo systemctl restart celery-beat
-```

@@ -7,3 +7,5 @@ app = Celery('services_aiori_v2')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
+
+

@@ -7,25 +7,28 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
     steps:
-      - name: Checkout Repository
+      - name: Checkout latest code
         uses: actions/checkout@v4
 
-      - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd ~/apps/ping
-            git pull origin main
-            source venv/bin/activate
-            pip install -r requirements.txt
-            python manage.py migrate
-            python manage.py collectstatic --noinput
-            sudo systemctl restart gunicorn
-            sudo systemctl restart celery-worker
-            sudo systemctl restart celery-beat
+      - name: Deploy application
+        run: |
+          cd /home/ubuntu/apps/ping
+
+          git fetch origin
+          git reset --hard origin/main
+
+          source venv/bin/activate
+
+          pip install -r requirements.txt
+
+          python manage.py migrate
+
+          python manage.py collectstatic --noinput
+
+          sudo systemctl restart gunicorn
+          sudo systemctl restart celery-worker
+          sudo systemctl restart celery-beat
+
+          echo "Deployment completed successfully."

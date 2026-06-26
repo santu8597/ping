@@ -8,27 +8,25 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+
     steps:
       - name: Checkout latest code
         uses: actions/checkout@v4
 
-      - name: Deploy application
+      - name: Deploy Docker Application
+        shell: bash
         run: |
+          set -e
+
           cd /home/ubuntu/apps/ping
 
           git fetch origin
           git reset --hard origin/main
 
-          source venv/bin/activate
+          docker compose down
 
-          pip install -r requirements.txt
+          docker compose up -d --build --remove-orphans
 
-          python manage.py migrate
-
-          python manage.py collectstatic --noinput
-
-          sudo systemctl restart gunicorn
-          sudo systemctl restart celery-worker
-          sudo systemctl restart celery-beat
+          docker image prune -af
 
           echo "Deployment completed successfully."
